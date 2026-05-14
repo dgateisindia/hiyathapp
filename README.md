@@ -10,14 +10,16 @@ npx create-expo-app@latest
 app name: client
 
 ----------------------------------------------------------------------------------------------------------------------------------
-Installation with Expo
-Install Nativewind
+Installation with Expo:
+Install Nativewind:
 npm install nativewind react-native-reanimated react-native-safe-area-context
+
 npm install --dev tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 babel-preset-expo
 
 ----------------------------------------------------------------------------------------------------------------------------------
-Setup Tailwind CSS
-Run npx tailwindcss init to create a tailwind.config.js file
+Setup Tailwind CSS:
+Run npx tailwindcss init 
+to create a tailwind.config.js file
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Paste this code in tailwind.config.js file:
@@ -63,7 +65,7 @@ module.exports = withNativeWind(config, { input: './global.css' })
 
 ----------------------------------------------------------------------------------------------------------------------------------
 
-Import your CSS file
+Import your CSS file:
 import "./global.css"
  
 export default App() {
