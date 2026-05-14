@@ -1,5 +1,6 @@
 import { COLORS } from '@/constants'
 import { HeaderProps } from '@/constants/types'
+import useCart from '@/context/CartContext'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React from 'react'
@@ -9,7 +10,9 @@ export default function Header({title, showBack, showSearch,
   showCart, showMenu, showLogo} : HeaderProps) {
 
     const router = useRouter()
-    const {itemCount} = {itemCount: 6} // Replace with actual cart item count
+    const { itemCount } = useCart()
+    //const itemCount = cartItems.length
+
 
   return (
     <View className='flex-row items-center justify-between
@@ -54,17 +57,32 @@ export default function Header({title, showBack, showSearch,
         )}
 
         {showCart && (
-          <TouchableOpacity onPress={()=> router.push('/(tabs)/cart')}>
-            <View className='relative'>
-            <Ionicons name='bag-outline' size={24} color={COLORS.primary} />
-            <View className='absolute -top-1 -right-1
-            bg-accent w-4 h-4 rounded-s-md items-center justify-center'>
-                <Text className='text-white text-[10px] font-bold'>
-                    {itemCount}</Text>
-            </View>
-            </View>
-          </TouchableOpacity>
-        )}
+          <TouchableOpacity
+             onPress={() => router.push('/(tabs)/cart')}
+            >
+    <View className='relative'>
+
+      <Ionicons
+        name='bag-outline'
+        size={24}
+        color={COLORS.primary}
+      />
+
+      {itemCount > 0 && (
+        <View
+          className='absolute -top-2 -right-2
+          bg-red-500 min-w-[18px] h-[18px]
+          rounded-full items-center justify-center px-1'
+        >
+          <Text className='text-white text-[10px] font-bold'>
+            {itemCount}
+          </Text>
+        </View>
+      )}
+
+    </View>
+  </TouchableOpacity>
+)}
         
        </View>
       

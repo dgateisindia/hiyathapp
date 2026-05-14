@@ -6,7 +6,6 @@ import React, {
     useState,
 } from "react";
 
-import { dummyCart } from "@/assets/assets";
 import { Product } from "@/constants/types";
 
 export type CartItem = {
@@ -68,7 +67,13 @@ export function CartProvider({
 
         setIsLoading(true);
 
-        const serverCart = dummyCart;
+        //const serverCart = dummyCart;
+
+        const serverCart = {
+            items: [],
+            totalAmount: 0
+            };
+
 
         const mappedItems: CartItem[] =
             serverCart.items.map((item: any) => ({
@@ -200,7 +205,7 @@ export function CartProvider({
     );
 
     useEffect(() => {
-        fetchCart();
+        //fetchCart();
     }, []);
 
     return (

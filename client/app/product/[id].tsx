@@ -65,17 +65,25 @@ export default function ProductDetail() {
 
   const isLiked = isInWishlist(product._id);
 
-  const handleAddToCart = () => {
-    if(!selectedSize){
-      Toast.show({
-        type: 'info',
-        text1: 'No size selected',
-        text2: 'Please select a size.',
-      })
-      return;
-    }
-    addToCart(product, selectedSize || "");
+ const handleAddToCart = () => {
+  if (!selectedSize) {
+    Toast.show({
+      type: 'info',
+      text1: 'No size selected',
+      text2: 'Please select a size.',
+    });
+    return;
   }
+
+  addToCart(product, selectedSize || "");
+
+  Toast.show({
+    type: 'success',
+    text1: 'Added to Cart',
+    text2: `${product.name} added successfully`,
+    position: 'top',
+  });
+};
 
   return (
     <View className="flex-1 bg-white">

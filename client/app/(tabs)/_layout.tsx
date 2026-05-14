@@ -1,13 +1,13 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Tabs } from 'expo-router'
-import { Feather, Ionicons } from '@expo/vector-icons'
-import {COLORS} from '@/constants'
+import { COLORS } from '@/constants'
 import useCart from '@/context/CartContext'
+import { Feather, Ionicons } from '@expo/vector-icons'
+import { Tabs } from 'expo-router'
+import React from 'react'
+import { Text, View } from 'react-native'
 
 export default function TabLayout() {
 
-    const { cartItems } = useCart()
+    const { itemCount } = useCart()
 
   return (
     <Tabs
@@ -38,11 +38,17 @@ export default function TabLayout() {
                     <Feather name=
             {focused ? 'shopping-cart' : 'shopping-cart'} size={26} 
             color={color}/>
-            {cartItems?.length > 0 && (
-                <View className='absolute -top-2 -right-2 bg-accent size-3 rounded-full items-center justify-center'>
-                    <Ionicons name='ellipse' size={6} color='white' />
-                </View>
-            )}
+            {itemCount > 0 && (
+  <View
+    className='absolute -top-2 -right-2
+    bg-red-500 min-w-[18px] h-[18px]
+    rounded-full items-center justify-center px-1'
+  >
+    <Text className='text-white text-[10px] font-bold'>
+      {itemCount}
+    </Text>
+  </View>
+)}
                 </View>
             )
         }}/>
