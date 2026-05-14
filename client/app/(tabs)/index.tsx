@@ -1,18 +1,18 @@
 import { BANNERS, dummyProducts } from '@/assets/assets'
 import CategoryItem from '@/components/CategoryItem'
-import Header from '@/components/header'
+import Header from '@/components/Header'
 import ProductCard from '@/components/ProductCard'
 import { CATEGORIES } from '@/constants'
 import { Product } from '@/constants/types'
 import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
 import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 

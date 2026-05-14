@@ -1,5 +1,5 @@
 import CartItem from '@/components/CartItem'
-import Header from '@/components/header'
+import Header from '@/components/Header'
 import useCart from '@/context/CartContext'
 import { useRouter } from 'expo-router'
 import React from 'react'

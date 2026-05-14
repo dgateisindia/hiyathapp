@@ -1,5 +1,5 @@
 import { dummyProducts } from '@/assets/assets'
-import Header from '@/components/header'
+import Header from '@/components/Header'
 import ProductCard from '@/components/ProductCard'
 import { COLORS } from '@/constants'
 import { Product } from '@/constants/types'
