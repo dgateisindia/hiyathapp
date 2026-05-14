@@ -2,7 +2,8 @@ import { COLORS } from '@/constants'
 import { CartItem as CartItemType } from '@/context/CartContext'
 import { Ionicons } from '@expo/vector-icons'
 import React from 'react'
-import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
+
 
 type Props = {
   item: CartItemType
@@ -44,13 +45,13 @@ export default function CartItem({
             </Text>
           </View>
 
-          <TouchableOpacity onPress={onRemove}>
+          <Pressable onPress={onRemove}>
             <Ionicons
               name='close-circle-outline'
               size={20}
               color='#ff4c3b'
             />
-          </TouchableOpacity>
+          </Pressable>
 
         </View>
         {/* price and quantity*/}
@@ -58,10 +59,10 @@ export default function CartItem({
             <Text className='text-primary font-bold text-base'>${item.product.price.toFixed(2)}</Text>
 
             <View className='flex-row items-center bg-surface rounded-full px-2 py-1'>
-                <TouchableOpacity className='p-1'
+                <Pressable className='p-1'
                 onPress={()=> onUpdateQuantity && onUpdateQuantity(item.quantity - 1)}>
                     <Ionicons name='remove' size={16} color={COLORS.primary} />
-                </TouchableOpacity>
+                </Pressable>
 
 
                 <Text className='text-primary font-medium mx-3'>{item.quantity}</Text>

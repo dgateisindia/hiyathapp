@@ -134,50 +134,44 @@ export function CartProvider({
         });
     };
 
-    const removeFromCart = async (
-        itemId: string,
-        size: string
-    ) => {
+   const removeFromCart = async (
+  itemId: string,
+  size: string
+) => {
 
-        setCartItems((prev) =>
-            prev.filter(
-                (item) =>
-                    !(
-                        item.productId === itemId &&
-                        item.size === size
-                    )
-            )
-        );
-    };
+  setCartItems((prev) =>
+    prev.filter(
+      (item) =>
+        !(item.id === itemId && item.size === size)
+    )
+  );
+};
 
     const updateQuantity = async (
-        itemId: string,
-        quantity: number,
-        size: string = "M"
-    ) => {
+  itemId: string,
+  quantity: number,
+  size: string
+) => {
 
-        if (quantity <= 0) {
+  if (quantity <= 0) {
 
-            await removeFromCart(
-                itemId,
-                size
-            );
+    await removeFromCart(itemId, size);
 
-            return;
-        }
+    return;
+  }
 
-        setCartItems((prev) =>
-            prev.map((item) =>
-                item.productId === itemId &&
-                item.size === size
-                    ? {
-                          ...item,
-                          quantity,
-                      }
-                    : item
-            )
-        );
-    };
+  setCartItems((prev) =>
+    prev.map((item) =>
+      item.id === itemId &&
+      item.size === size
+        ? {
+            ...item,
+            quantity,
+          }
+        : item
+    )
+  );
+};;
 
     const clearCart = async () => {
 

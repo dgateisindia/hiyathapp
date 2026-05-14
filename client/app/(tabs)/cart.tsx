@@ -24,8 +24,11 @@ export default function Cart() {
           {cartItems.map((item, index)=> (
               <CartItem key={index}
               item={item}
-              onRemove={()=> removeFromCart(item.id, item.size)}
-              onUpdateQuantity={(q)=>updateQuantity(item.id, q, item.size)}
+              onRemove={() => removeFromCart(item.id, item.size)}
+
+onUpdateQuantity={(q) =>
+  updateQuantity(item.id, q, item.size)
+}
               />
           ))}
         </ScrollView>
