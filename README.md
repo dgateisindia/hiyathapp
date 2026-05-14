@@ -91,6 +91,6 @@ To display the toast message
 
 
 ----------------------------------------------------------------------------------------------------------------------------------
-image picker library
+image picker library:
 npm install react-native-image-picker
 
