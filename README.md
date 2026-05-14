@@ -6,19 +6,19 @@ Backend: node js, express js
 Database: MySql
 
 Creating new Project using React native expo:
-npx create-expo-app@latest
+- npx create-expo-app@latest
 app name: client
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Installation with Expo:
 Install Nativewind:
-npm install nativewind react-native-reanimated react-native-safe-area-context
+- npm install nativewind react-native-reanimated react-native-safe-area-context
 
-npm install --dev tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 babel-preset-expo
+- npm install --dev tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 babel-preset-expo
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Setup Tailwind CSS:
-Run npx tailwindcss init 
+- Run npx tailwindcss init 
 to create a tailwind.config.js file
 
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -88,11 +88,21 @@ If you're using TypeScript in your project, you'll need to set up the type defin
 
 
 ----------------------------------------------------------------------------------------------------------------------------------
-npm install react-native-toast-message:
 To display the toast message
+- npm install react-native-toast-message
+
 
 
 ----------------------------------------------------------------------------------------------------------------------------------
 image picker library:
-npm install react-native-image-picker
+- npm install react-native-image-picker
 
+----------------------------------------------------------------------------------------------------------------------------------
+**Steps to Run the project on Computer:**
+1. Open VS code & the terminal
+2. In terminal type cd client and hit enter
+3. Open Android studio and launch Android emulator
+4. In vs code terminal type
+   - npx expo start
+     and type a
+5. The project will launch in Android emulator
