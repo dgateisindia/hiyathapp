@@ -49,10 +49,10 @@ export default function Addresses() {
     };
 
     const handleSaveAddress = async () => {
-        setModalVisible(false);
-        resetForm();
-        fetchAddresses();
-    };
+    setModalVisible(false);
+    resetForm();
+    fetchAddresses();
+};
 
     const handleDeleteAddress = async (id: string) => {
 

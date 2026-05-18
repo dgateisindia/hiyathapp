@@ -30,11 +30,11 @@ export default function Header({title, showBack, showSearch,
         </TouchableOpacity>
   )}
 
-    {showMenu && (
+    {/* {showMenu && (
       <TouchableOpacity  className='mr-3'>
         <Ionicons name='menu-outline' size={24} color={COLORS.primary} />
       </TouchableOpacity>
-    )}
+    )} */}
 
     {showLogo ? (
         <View className='flex-1'>
