@@ -114,3 +114,43 @@ Clerk authentication libraries
 
 After installing the clerk, run
  - npm run start
+
+-----------------------------------------------------------------
+
+Starting the backend server
+1. Go into server folder uisng cmd
+- cd server
+
+2. Run this command
+- npm run server
+
+-------------------------------------------------------------------
+
+Install ngrok to create a public internet URL for your localhost application.
+
+1. install ngrok
+- npm install -g ngrok
+
+2. create a account in ngrok website
+- https://dashboard.ngrok.com/signup?utm_source=chatgpt.com
+
+3. Get your Authtoken
+After logging in, open:
+
+- https://dashboard.ngrok.com/get-started/your-authtoken?utm_source=chatgpt.com
+
+You'll see something like:
+- ngrok config add-authtoken 2abcXYZ...
+
+Copy the entire command.
+
+4. Run the command in your terminal
+Example: 
+- ngrok config add-authtoken 3EWOBKzhyMu2GBeZdnernNUxhb0_3WmFDHNiosRftDSFM7FSV
+
+5. Start ngrok
+- ngrok http 3000
+
+You should get:
+
+Forwarding https://xxxxx.ngrok-free.app -> http://localhost:3000

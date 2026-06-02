@@ -4,7 +4,12 @@ import User from "../models/user"
 
 export const clerkWebhook = async (req: Request, res: Response) => {
     try {
+
+        console.log("🔥 WEBHOOK HIT");
+
         const evt = await verifyWebhook(req)
+
+        console.log("✅ VERIFIED");
 
         if (evt.type === 'user.created' || evt.type === 'user.updated') {
 
