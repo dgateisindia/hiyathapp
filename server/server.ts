@@ -6,6 +6,11 @@ import { clerkMiddleware } from '@clerk/express'
 import { clerkWebhook } from "./controllers/webhooks";
 import makeAdmin from "./scripts/makeAdmin";
 import ProductRouter from "./routes/productsRoutes";
+import CartRouter from "./routes/cartRoutes";
+import OrderRouter from "./routes/orderRoutes";
+import AddressRouter from "./routes/addressRoutes";
+import AdminRouter from "./routes/adminRoutes";
+import wishlistRoutes from "./routes/wishlistRoutes";
 
 const app = express();
 
@@ -25,6 +30,11 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api/products', ProductRouter);
+app.use('/api/cart', CartRouter);
+app.use('/api/orders', OrderRouter)
+app.use('/api/addresses', AddressRouter)
+app.use('/api/admin', AdminRouter)
+app.use("/api/wishlist", wishlistRoutes)
 
 const startServer = async () => {
     try {
