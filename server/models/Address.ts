@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import { IAddress } from "../types";
 
 const AddressSchema = new mongoose.Schema<IAddress>({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+    user: {
+        type: mongoose.Schema.Types.ObjectId, ref: "User", required: true //(unique: true) 
+    },
     type: { type: String, required: true, enum: ['Home', 'Work', 'Other'], default: "Home" },
     street: { type: String, required: true },
     city: { type: String, required: true },

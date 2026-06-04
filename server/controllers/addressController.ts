@@ -61,7 +61,7 @@ export const updateAddress = async (req: Request, res: Response) => {
             await Address.updateMany({ user: req.user._id }, { isDefault: false })
         }
 
-        addressItem = await Address.findByIdAndUpdate(req.user._id, { type, street, city, state, zipCode, country, isDefault: isDefault }, { new: true })
+        addressItem = await Address.findByIdAndUpdate(req.params.id, { type, street, city, state, zipCode, country, isDefault: isDefault }, { new: true })
 
 
         res.status(201).json({ success: true, data: addressItem })
