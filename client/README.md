@@ -74,7 +74,7 @@ export default App() {
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Modify your app.json
-{
+
   "expo": {
     "web": {
       "bundler": "metro"
@@ -126,7 +126,7 @@ Starting the backend server
 
 -------------------------------------------------------------------
 
-Install ngrok to create a public internet URL for your localhost application.
+**Install ngrok to create a public internet URL for your localhost application.**
 
 1. install ngrok
 - npm install -g ngrok
