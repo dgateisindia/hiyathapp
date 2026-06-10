@@ -1,14 +1,15 @@
 import { COLORS } from "@/constants";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import type { EmailCodeFactor } from "@clerk/types";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, Redirect } from "expo-router";
 import * as React from "react";
 import { ActivityIndicator, Pressable, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
     const { signIn, setActive, isLoaded } = useSignIn();
+    const { isSignedIn } = useAuth();
     const router = useRouter();
 
     const [emailAddress, setEmailAddress] = React.useState("");
@@ -76,6 +77,14 @@ export default function Page() {
             setLoading(false);
         }
     };
+
+    if (!isLoaded) {
+    return null;
+}
+
+if (isSignedIn) {
+    return <Redirect href="/(tabs)" />;
+}
 
     return (
         <SafeAreaView className="flex-1 bg-white justify-center" style={{ padding: 28 }}>

@@ -138,7 +138,7 @@ export default function SignUpScreen() {
                     {/* Footer */}
                     <View className="flex-row justify-center">
                         <Text className="text-secondary">Already have an account? </Text>
-                        <Link href="/profile/sign-in">
+                        <Link href="/sign-in">
                             <Text className="text-primary font-bold">Login</Text>
                         </Link>
                     </View>
