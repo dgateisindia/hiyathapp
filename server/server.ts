@@ -11,6 +11,7 @@ import OrderRouter from "./routes/orderRoutes";
 import AddressRouter from "./routes/addressRoutes";
 import AdminRouter from "./routes/adminRoutes";
 import wishlistRoutes from "./routes/wishlistRoutes";
+import { seedProducts } from "./scripts/seedProducts";
 
 const app = express();
 
@@ -36,6 +37,9 @@ app.use('/api/addresses', AddressRouter)
 app.use('/api/admin', AdminRouter)
 app.use("/api/wishlist", wishlistRoutes)
 
+
+
+
 const startServer = async () => {
     try {
 
@@ -43,6 +47,10 @@ const startServer = async () => {
         await connectDB();
 
         await makeAdmin();
+
+        // seed dummy products if no products are present
+        //await seedProducts(process.env.MONGODB_URI as string);
+
 
         app.listen(port, () => {
             console.log(`Server is running at http://localhost:${port}`);

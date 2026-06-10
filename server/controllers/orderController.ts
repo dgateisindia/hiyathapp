@@ -44,6 +44,8 @@ export const getOrder = async (req: Request, res: Response) => {
 // Create order from cart
 // POST /api/orders
 
+
+
 export const createOrder = async (req: Request, res: Response) => {
 
     try {
@@ -84,19 +86,24 @@ export const createOrder = async (req: Request, res: Response) => {
         const tax = 0;
         const totalAmount = subtotal + shippingCost + tax;
 
+
+
         const order = await Order.create({
             user: req.user._id,
             items: orderItems,
-            shippingAddress: req.body.paymentMethod || 'cash',
-            paymentStatus: 'pending',
+
+            shippingAddress,
+
+            paymentMethod: req.body.paymentMethod || "cash",
+
+            paymentStatus: "pending",
             subtotal,
             shippingCost,
             tax,
             totalAmount,
             notes: note,
-            paymentIntentId: req.body.paymentIntendId,
-            orderNumber: 'ORD-' + Date.now(),
-
+            paymentIntentId: req.body.paymentIntentId,
+            orderNumber: "ORD-" + Date.now(),
         })
 
         if (req.body.paymentMethod !== "stripe") {
@@ -108,7 +115,12 @@ export const createOrder = async (req: Request, res: Response) => {
         res.status(201).json({ success: true, data: order })
 
     } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false, message: error.message
+
+
+
+        });
     }
 
 }

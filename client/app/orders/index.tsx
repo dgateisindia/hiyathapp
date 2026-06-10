@@ -1,7 +1,9 @@
 import { dummyOrders, formatDate } from "@/assets/assets";
 import Header from "@/components/Header";
 import { COLORS, getStatusColor } from "@/constants";
+import api from "@/constants/api";
 import type { Order } from "@/constants/types";
+import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -9,13 +11,25 @@ import { ActivityIndicator, FlatList, Image, ScrollView, Text, TouchableOpacity,
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Orders() {
+    const {getToken} = useAuth()
     const router = useRouter();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchOrders = async () => {
-        setOrders(dummyOrders as any[]);
-        setLoading(false);
+        try {
+            const token = await getToken()
+        const {data} = await api.get('/orders',
+            {headers: {Authorization: `Bearer ${token}`}})
+        setOrders(data.data)
+
+        } catch (error) {
+            console.error("Error fetching orders:",error)
+ 
+        } finally {
+            setLoading(false);
+        }
+        
     };
 
     useEffect(() => {

@@ -1,5 +1,6 @@
 import { dummyProducts } from '@/assets/assets';
 import { COLORS } from '@/constants';
+import api from '@/constants/api';
 import { Product } from '@/constants/types';
 import useCart from '@/context/CartContext';
 import useWishlist from '@/context/Wishlist';
@@ -37,10 +38,21 @@ export default function ProductDetail() {
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
   const fetchProduct = async () => {
-    const foundProduct = dummyProducts.find((item) => item._id === id) as Product;
+    
+    try {
+      const {data} = await api.get(`/products/${id}`);
+      setProduct(data.data)
 
-    setProduct(foundProduct || null);
-    setLoading(false);
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to fetch Product',
+        text2: error.response?.data?.message || 'Something went wrong'
+      })
+
+    } finally {
+      setLoading(false)
+    }
   };
 
   useEffect(() => {

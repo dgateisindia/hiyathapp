@@ -154,3 +154,7 @@ Example:
 You should get:
 
 Forwarding https://xxxxx.ngrok-free.app -> http://localhost:3000
+
+**Install this library in client folder for API integration**
+1. cd client
+- npm install axios 

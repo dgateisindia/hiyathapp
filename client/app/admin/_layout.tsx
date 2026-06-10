@@ -3,10 +3,11 @@ import { useEffect } from "react";
 import { View, ActivityIndicator, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
-import { dummyUser } from "@/assets/assets";
+//import { dummyUser } from "@/assets/assets";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function AdminLayout() {
-    const { user } = { user: dummyUser }
+    const { user } = useUser()
     const isLoaded = true;
     const router = useRouter();
 

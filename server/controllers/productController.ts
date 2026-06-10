@@ -80,7 +80,7 @@ export const createProduct = async (req: Request, res: Response) => {
             images = await Promise.all(uploadPromises);
         }
 
-        let sizes = req.body.size || [];
+        let sizes = req.body.sizes || [];
 
         if (typeof sizes === 'string') {
             try {
@@ -132,6 +132,9 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
     try {
+
+
+
         let images: string[] = [];
 
         const files = (req as any).files;
@@ -199,6 +202,8 @@ export const updateProduct = async (req: Request, res: Response) => {
         }
 
         delete updates.existingImages;
+
+
 
         const product = await Product.findByIdAndUpdate(
             req.params.id,
