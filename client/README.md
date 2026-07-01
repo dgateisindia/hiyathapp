@@ -158,3 +158,13 @@ Forwarding https://xxxxx.ngrok-free.app -> http://localhost:3000
 **Install this library in client folder for API integration**
 1. cd client
 - npm install axios 
+
+------------------------------------------------------------------------------------------
+**Command to upload images from local computer to cloudinary**
+- cd server
+- npx ts-node scripts/uploadImages.ts
+
+------------------------------------------------------------------------------------------
+**Command to merge the images from cloudinary to the database**
+- cd server
+- npx ts-node scripts/syncProductImages.ts

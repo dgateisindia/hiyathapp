@@ -60,7 +60,7 @@ export default function AdminDashboard() {
             <View className="mb-8">
                 <Text className="text-primary font-bold text-2xl mb-4 tracking-tight">Overview</Text>
                 <View className="flex-row flex-wrap justify-between">
-                    <StatCard label="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`} />
+                    <StatCard label="Total Revenue" value={`${stats.totalRevenue.toFixed(2)}`} />
                     <StatCard label="Total Orders" value={stats.totalOrders.toString()} />
                     <StatCard label="Products" value={stats.totalProducts.toString()} />
                     <StatCard label="Users" value={stats.totalUsers.toString()} />

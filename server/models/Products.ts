@@ -1,22 +1,96 @@
-import mongoose, { Schema, model } from 'mongoose';
-import { IProduct } from '../types';
+import mongoose from "mongoose";
 
-const productSchema = new Schema<IProduct>({
-    name: { type: String, required: true, trim: true },
-    description: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
-    images: [{ type: String }],
-    sizes: [{ type: String }],
-    category: { type: String, required: true, enum: ["Men", "Women", "Kids", "Shoes", "Bags", "Other"] as const, default: "Other" },
-    stock: { type: Number, required: true, min: 0, default: 0 },
-    isFeatured: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true },
+const productSchema = new mongoose.Schema(
+    {
+        sku: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
 
+        name: {
+            type: String,
+            required: true,
+            trim: true
+        },
 
-}, { timestamps: true });
+        title: {
+            type: String,
+            trim: true
+        },
 
-productSchema.index({ name: 'text', description: 'text' });
+        description: {
+            type: String,
+            trim: true
+        },
 
-const Product = mongoose.model<IProduct>('Product', productSchema);
+        category: {
+            type: String,
+            trim: true
+        },
 
-export default Product;
+        price: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+
+        comparePrice: {
+            type: Number,
+            default: 0
+        },
+
+        stock: {
+            type: Number,
+            default: 0
+        },
+
+        images: {
+            type: [String],
+            default: []
+        },
+
+        sizes: {
+            type: [String],
+            default: []
+        },
+
+        specifications: {
+            type: Map,
+            of: String,
+            default: {}
+        },
+
+        highlights: {
+            type: Map,
+            of: String,
+            default: {}
+        },
+
+        ratings: {
+            average: {
+                type: Number,
+                default: 0
+            },
+            count: {
+                type: Number,
+                default: 0
+            }
+        },
+
+        isFeatured: {
+            type: Boolean,
+            default: false
+        },
+
+        isActive: {
+            type: Boolean,
+            default: true
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+export default mongoose.model("Product", productSchema);

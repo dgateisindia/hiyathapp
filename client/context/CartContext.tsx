@@ -6,7 +6,7 @@ import React, {
     useState,
 } from "react";
 import { Product } from "@/constants/types";
-import { SignedIn, useAuth } from "@clerk/clerk-expo";
+import {  useAuth } from "@clerk/clerk-expo";
 import api from "@/constants/api";
 import Toast from "react-native-toast-message";
 
@@ -28,7 +28,7 @@ type CartContextType = {
 
     addToCart: (
         product: Product,
-        size: string
+        size?: string
     ) => Promise<void>;
 
     removeFromCart: (
@@ -110,7 +110,7 @@ export function CartProvider({
 
     const addToCart = async (
         product: Product,
-        size: string
+        size?: string
     ) => {
         if(!isSignedIn){
             return Toast.show({
@@ -122,7 +122,7 @@ export function CartProvider({
             setIsLoading(true)
             const token = await getToken()
             const {data} = await api.post('/cart/add',
-                {productId: product._id, quantity:1, size},
+                {productId: product._id, quantity:1, size: size || null},
                 {headers: {Authorization: `Bearer ${token}`}})
 
             if(data.success){
@@ -131,6 +131,7 @@ export function CartProvider({
 
         } catch (error) {
             console.error('Failed to add to cart:',error);
+            
             Toast.show({
                 text1:'Failed to add to cart',
                 type: 'error'
@@ -232,7 +233,7 @@ export function CartProvider({
              
             setIsLoading(true);
             const token = await getToken();
-            const {data} = await api.delete(`/cart}`,
+            const {data} = await api.delete(`/cart`,
                 
                 {headers: {Authorization: `Bearer ${token}`}})
 

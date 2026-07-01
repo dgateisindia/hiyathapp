@@ -1,4 +1,3 @@
-import { dummyProducts } from '@/assets/assets';
 import { COLORS } from '@/constants';
 import api from '@/constants/api';
 import { Product } from '@/constants/types';
@@ -77,17 +76,20 @@ export default function ProductDetail() {
 
   const isLiked = isInWishlist(product._id);
 
- const handleAddToCart = () => {
-  if (!selectedSize) {
-    Toast.show({
-      type: 'info',
-      text1: 'No size selected',
-      text2: 'Please select a size.',
-    });
-    return;
-  }
+  const requiresSize =
+    product.sizes && product.sizes.length > 0;
 
-  addToCart(product, selectedSize || "");
+ const handleAddToCart = () => {
+    if (requiresSize && !selectedSize) {
+        Toast.show({
+            type: "error",
+            text1: "No size selected",
+            text2: "Please select a size.",
+        });
+        return;
+    }
+
+  addToCart(product, requiresSize ? selectedSize ?? undefined : undefined);
 
   Toast.show({
     type: 'success',
@@ -193,7 +195,7 @@ export default function ProductDetail() {
           </View>
           {/* Price */}
           <Text className='text-2xl font-bold text-primary mb-6'>
-            ${product.price.toFixed(2)}
+            Rs.{product.price.toFixed(2)}
           </Text>
 
           {/* Sizes */}

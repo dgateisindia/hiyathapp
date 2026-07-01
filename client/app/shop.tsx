@@ -1,4 +1,4 @@
-import { dummyProducts } from '@/assets/assets'
+
 import Header from '@/components/Header'
 import ProductCard from '@/components/ProductCard'
 import { COLORS } from '@/constants'
@@ -32,7 +32,16 @@ export default function Shop() {
             if(pageNumber === 1){
                 setProducts(data.data)
             } else {
-                setProducts(prev => [...prev, ...data.data])
+               setProducts(prev => {
+    const merged = [...prev, ...data.data];
+
+    const unique = merged.filter(
+        (item, index, self) =>
+            index === self.findIndex(p => p._id === item._id)
+    );
+
+    return unique;
+});
             }
 
             setHasMore(data.pagination.page < data.pagination.pages)

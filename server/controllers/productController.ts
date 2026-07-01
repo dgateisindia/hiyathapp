@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import cloudinary from '../config/cloudinary';
 import Product from '../models/Products';
 
+import fs from "fs";
+import csv from "csv-parser";
+import XLSX from "xlsx";
+
 
 // Get all products 
 // GET /api/products
@@ -11,7 +15,10 @@ export const getProducts = async (req: Request, res: Response) => {
         const query: any = { isActive: true };
 
         const total = await Product.countDocuments(query);
-        const products = await Product.find(query).skip((Number(page) - 1) * Number(limit)).limit(Number(limit)).limit(Number(limit));
+        const products = await Product.find(query)
+            .sort({ createdAt: -1 })
+            .skip((Number(page) - 1) * Number(limit))
+            .limit(Number(limit));
 
         res.json({
             success: true,
@@ -276,5 +283,163 @@ export const deleteProduct = async (req: Request, res: Response) => {
             success: false,
             message: error.message
         });
+    }
+};
+
+// controller to upload csv file
+
+export const importProductsCSV = async (req: any, res: any) => {
+    try {
+
+        const products: any[] = [];
+
+        fs.createReadStream(req.file.path)
+            .pipe(csv())
+            .on("data", (row) => {
+
+                console.log(row);
+
+                products.push({
+                    sku: row["Model/SKU"] || "",
+
+                    name: row["Title"] || "Unnamed Product",
+
+                    title: row["Title"] || "",
+
+                    description: row["Product Description"] || "",
+
+                    price: Number(row["Variant Price"]) || 0,
+
+                    comparePrice: Number(row["Compare At Price"]) || 0,
+
+                    images: row["Image Src"]
+                        ? [row["Image Src"]]
+                        : [],
+
+                    sizes: row["Size"]
+                        ? row["Size"].split(",").map((s: string) => s.trim())
+                        : [],
+
+                    category: row["Category"] || "Other",
+
+                    stock: Number(row["Stock"]) || 0,
+
+                    specifications: {},
+
+                    highlights: {},
+
+                    ratings: {
+                        average: 0,
+                        count: 0
+                    },
+
+                    isFeatured: false,
+
+                    isActive: row["Status"] === "active"
+                });
+
+            })
+            .on("end", async () => {
+
+                await Product.insertMany(products);
+
+                res.status(200).json({
+                    success: true,
+                    count: products.length
+                });
+
+            });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: "CSV import failed"
+        });
+    }
+};
+
+// api to handle xlsx and csv file
+
+export const importProducts = async (
+    req: any,
+    res: any
+) => {
+    try {
+
+        if (!req.file) {
+            return res.status(400).json({
+                message: "No file uploaded"
+            });
+        }
+
+        const workbook = XLSX.readFile(req.file.path);
+
+        const sheet =
+            workbook.Sheets[
+            workbook.SheetNames[0]
+            ];
+
+        const rows: any[] =
+            XLSX.utils.sheet_to_json(sheet);
+
+        const products = rows.map((row) => ({
+            sku: row["Model/SKU"] || "",
+
+            name: row["Title"] || "Unnamed Product",
+
+            title: row["Title"] || "",
+
+            description: row["Product Description"] || "",
+
+            category: row["Category"] || "Other",
+
+            price: Number(row["Price"]) || 0,
+
+            comparePrice: Number(row["Compare Price"]) || 0,
+
+            stock: Number(row["Stock"]) || 0,
+
+            images: row["Image Src"]
+                ? [row["Image Src"]]
+                : [],
+
+            sizes: row["Size"]
+                ? row["Size"].split(",").map((s: string) => s.trim())
+                : [],
+
+            specifications: {},
+
+            highlights: {},
+
+            ratings: {
+                average: 0,
+                count: 0
+            },
+
+            isFeatured: false,
+
+            isActive: true
+        }));
+
+        const result =
+            await Product.insertMany(products);
+
+        return res.status(200).json({
+            success: true,
+            inserted: result.length
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Import failed"
+        });
+
     }
 };

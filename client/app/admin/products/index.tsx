@@ -22,7 +22,7 @@ export default function AdminProducts() {
         const { data } = await api.get(`/products`,
             {params: {limit: 999}});
 
-        console.log("Products API Response:", data);
+        
 
         if (data.success) {
             setProducts(data.data);
@@ -130,7 +130,7 @@ export default function AdminProducts() {
                                 <Text className="text-secondary text-xs mb-1" numberOfLines={1}>
                                 Sizes : {product.sizes?.join(", ") || "No sizes"}
                                 </Text>
-                                <Text className="text-primary font-bold">${product.price.toFixed(2)}</Text>
+                                <Text className="text-primary font-bold">Rs.{product.price.toFixed(2)}</Text>
                             </View>
 
                             <View className="flex-row items-center">

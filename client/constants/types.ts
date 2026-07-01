@@ -16,25 +16,39 @@ export interface User {
 
 export interface Product {
     _id: string;
+
     name: string;
+
+    title?: string;
+
     description: string;
+
     price: number;
+
     comparePrice?: number;
+
     images: string[];
-    sizes?: string[];
+
+    sizes: string[];
+
     category:
-        | {
-              _id: string;
-              name: string;
-          }
-        | string;
+    | string
+    | {
+        _id: string;
+        name: string;
+    };
+
     stock: number;
+
     ratings: {
         average: number;
         count: number;
     };
+
     isFeatured: boolean;
+
     isActive: boolean;
+
     createdAt: string;
 }
 

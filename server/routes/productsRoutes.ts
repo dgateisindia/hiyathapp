@@ -1,11 +1,17 @@
 import express from 'express';
-import { getProducts, getProduct, updateProduct, deleteProduct } from '../controllers/productController';
+import { getProducts, getProduct, updateProduct, deleteProduct, importProductsCSV, importProducts } from '../controllers/productController';
 import { createProduct } from '../controllers/productController';
 import { protect, authorize } from '../middleware/auth';
 import upload from '../middleware/upload';
+import multer from "multer";
 
 
 const ProductRouter = express.Router();
+
+// To upload csv file
+const csvUpload = multer({
+    dest: "uploads/"
+});
 
 // Get all products
 ProductRouter.get('/', getProducts);
@@ -21,5 +27,17 @@ ProductRouter.put('/:id', upload.array('images', 5), protect, authorize('admin')
 
 // Delete product (admin only) 
 ProductRouter.delete('/:id', protect, authorize('admin'), deleteProduct);
+
+ProductRouter.post(
+    "/import-csv",
+    csvUpload.single("file"),
+    importProductsCSV
+);
+
+ProductRouter.post(
+    "/import",
+    csvUpload.single("file"),
+    importProducts
+);
 
 export default ProductRouter;

@@ -104,11 +104,11 @@ export default function ProductCard({
                             className='text-primary font-medium text-sm mb-1'
                             numberOfLines={1}
                         >
-                            {product.name}
+                            {product.title}
                         </Text>
 
                         <Text className='text-primary font-bold text-base'>
-                            ${product.price.toFixed(2)}
+                            Rs.{(product.price || 0).toFixed(2)}
                         </Text>
 
                     </View>

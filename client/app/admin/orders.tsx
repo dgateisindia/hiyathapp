@@ -135,14 +135,14 @@ export default function AdminOrders() {
                                             )}
                                         </Text>
                                         <Text className="text-secondary text-xs font-bold">
-                                            ${item.price.toFixed(2)}
+                                            Rs.{item.price.toFixed(2)}
                                         </Text>
                                     </View>
                                 ))}
                             </View>
 
                             <View className="flex-row justify-between items-center mt-2 pt-3 border-t border-gray-100">
-                                <Text className="text-primary font-bold text-lg">${order.totalAmount.toFixed(2)}</Text>
+                                <Text className="text-primary font-bold text-lg">Rs.{order.totalAmount.toFixed(2)}</Text>
 
                                 <TouchableOpacity
                                     onPress={() => openStatusModal(order)}

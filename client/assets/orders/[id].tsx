@@ -52,7 +52,7 @@ export default function OrderDetails() {
 
     return (
         <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
-            <Header title={`Order #${order.orderNumber}`} showBack />
+            <Header title={`Order #{order.orderNumber}`} showBack />
 
             <ScrollView className="flex-1 px-4 pt-4">
                 {/* Order Status */}
@@ -62,7 +62,7 @@ export default function OrderDetails() {
                     {ORDER_STEPS.map((step, index) => (
                         <View key={index} className="flex-row mb-4 last:mb-0">
                             <View className="items-center mr-4">
-                                <View className={`w-3 h-3 rounded-full ${step.completed ? 'bg-primary' : 'bg-gray-300'}`} />
+                                <View className={`w-3 h-3 rounded-full {step.completed ? 'bg-primary' : 'bg-gray-300'}`} />
                                 {index !== ORDER_STEPS.length - 1 && (
                                     <View className={`w-0.5 h-full ${step.completed ? 'bg-primary' : 'bg-gray-300'} absolute top-3`} />
                                 )}
@@ -90,7 +90,7 @@ export default function OrderDetails() {
                                     <Text className="text-primary font-medium" numberOfLines={1}>{item.name}</Text>
                                     <Text className="text-secondary text-xs">Size: {item.size}</Text>
                                     <View className="flex-row justify-between items-center mt-2">
-                                        <Text className="text-primary font-bold">${item.price}</Text>
+                                        <Text className="text-primary font-bold">Rs.{item.price}</Text>
                                         <Text className="text-secondary text-xs">Qty: {item.quantity}</Text>
                                     </View>
                                 </View>
@@ -126,20 +126,20 @@ export default function OrderDetails() {
                     <View className="h-px bg-gray-100 my-2" />
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-secondary">Subtotal</Text>
-                        <Text className="text-primary font-medium">${order.subtotal.toFixed(2)}</Text>
+                        <Text className="text-primary font-medium">Rs.{order.subtotal.toFixed(2)}</Text>
                     </View>
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-secondary">Shipping</Text>
-                        <Text className="text-primary font-medium">${order.shippingCost.toFixed(2)}</Text>
+                        <Text className="text-primary font-medium">Rs.{order.shippingCost.toFixed(2)}</Text>
                     </View>
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-secondary">Tax</Text>
-                        <Text className="text-primary font-medium">${order.tax.toFixed(2)}</Text>
+                        <Text className="text-primary font-medium">Rs.{order.tax.toFixed(2)}</Text>
                     </View>
                     <View className="h-px bg-gray-100 my-2" />
                     <View className="flex-row justify-between">
                         <Text className="text-primary font-bold text-lg">Total</Text>
-                        <Text className="text-primary font-bold text-lg">${order.totalAmount.toFixed(2)}</Text>
+                        <Text className="text-primary font-bold text-lg">Rs.{order.totalAmount.toFixed(2)}</Text>
                     </View>
                 </View>
             </ScrollView>

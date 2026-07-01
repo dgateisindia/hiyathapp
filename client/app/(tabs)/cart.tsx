@@ -36,14 +36,14 @@ export default function Cart() {
             <Text className='text-secondary'>Subtotal
               
             </Text>
-            <Text className='text-primary font-bold'>${cartTotal.toFixed(2)}</Text>
+            <Text className='text-primary font-bold'>Rs.{cartTotal.toFixed(2)}</Text>
           </View>
           {/* shipping*/}
           <View className='flex-row justify-between mb-2'>
             <Text className='text-secondary'>Shipping
               
             </Text>
-            <Text className='text-primary font-bold'>${shipping.toFixed(2)}</Text>
+            <Text className='text-primary font-bold'>Rs.{shipping.toFixed(2)}</Text>
           </View>
           {/* border*/}
           <View className='h-[1px] bg-border mb-4'/>
@@ -52,7 +52,7 @@ export default function Cart() {
             <Text className='text-primary font-bold text-lg'>Total
               
             </Text>
-            <Text className='text-primary font-bold text-lg'>${total.toFixed(2)}</Text>
+            <Text className='text-primary font-bold text-lg'>Rs.{total.toFixed(2)}</Text>
           </View>
             {/* checkout button*/}
             <TouchableOpacity className='bg-primary py-4 rounded-full items-center' onPress={()=> router.push('/checkout')}>
