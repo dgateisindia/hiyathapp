@@ -19,7 +19,7 @@ export type CartItem = {
     productId: string;
     product: Product;
     quantity: number;
-    size: string;
+    size?: string;
     price: number;
 };
 
@@ -33,13 +33,13 @@ type CartContextType = {
 
     removeFromCart: (
         itemId: string,
-        size: string
+        size?: string
     ) => Promise<void>;
 
     updateQuantity: (
         itemId: string,
         quantity: number,
-        size: string
+        size?: string
     ) => Promise<void>;
 
     clearCart: () => Promise<void>;
@@ -93,7 +93,7 @@ export function CartProvider({
                     productId: item.product._id,
                     product: item.product,
                     quantity: item.quantity,
-                    size: item.size || "M",
+                    size: item.size,
                     price: item.price,
                 })
             );
@@ -145,7 +145,7 @@ export function CartProvider({
 
     const removeFromCart = async (
         productId: string,
-        size: string
+        size?: string
     ) => {
         if(isLoading) return;
 
@@ -153,8 +153,14 @@ export function CartProvider({
              
             setIsLoading(true);
             const token = await getToken();
-            const {data} = await api.delete(`/cart/item/${productId}?size=${size}`,
-                {headers: {Authorization: `Bearer ${token}`}})
+            const url = size? `/cart/item/${productId}?size=${encodeURIComponent(size)}`
+    : `/cart/item/${productId}`;
+
+        const { data } = await api.delete(url, {
+        headers: {
+        Authorization: `Bearer ${token}`,
+    },
+});
 
                 if(data.success){
                     await fetchCart()
@@ -180,7 +186,7 @@ export function CartProvider({
     const updateQuantity = async (
         productId: string,
         quantity: number,
-        size: string = "M"
+        size?: string
     ) => {
         if(!isSignedIn) return;
 
@@ -207,7 +213,8 @@ export function CartProvider({
                     await fetchCart()
                 }
             } catch (error) {
-            console.error('Failed to remove from cart:',error);
+            console.error('Failed to update cart:',error);
+            
 
             } finally {
             setIsLoading(false);
@@ -277,7 +284,6 @@ export function CartProvider({
             setCartItems([]);
             setCartTotal(0);
         }
-        fetchCart();
     }, [isSignedIn]);
 
     return (

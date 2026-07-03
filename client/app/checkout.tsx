@@ -260,28 +260,28 @@ export default function Checkout() {
                 <Text className='text-secondary'>
                     Subtotal
                 </Text>
-                <Text className='font-bold'>${cartTotal.toFixed(2)}</Text>
+                <Text className='font-bold'>Rs.{cartTotal.toFixed(2)}</Text>
             </View>
             {/*shipping  */}
             <View className='flex-row justify-between mb-2'>
                 <Text className='text-secondary'>
                     Shipping
                 </Text>
-                <Text className='font-bold'>${shipping.toFixed(2)}</Text>
+                <Text className='font-bold'>Rs.{shipping.toFixed(2)}</Text>
             </View>
             {/**tax */}
             <View className='flex-row justify-between mb-2'>
                 <Text className='text-secondary'>
                     Tax
                 </Text>
-                <Text className='font-bold'>${tax.toFixed(2)}</Text>
+                <Text className='font-bold'>Rs.{tax.toFixed(2)}</Text>
             </View>
             {/**total */}
             <View className='flex-row justify-between mb-6'>
                 <Text className='text-primary text-xl font-bold'>
                     Total
                 </Text>
-                <Text className='text-primary text-xl font-bold'>${total.toFixed(2)}</Text>
+                <Text className='text-primary text-xl font-bold'>Rs.{total.toFixed(2)}</Text>
             </View>
             {/*place order button */}
             <TouchableOpacity 

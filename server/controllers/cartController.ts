@@ -73,6 +73,8 @@ export const addToCart = async (req: Request, res: Response) => {
 // PUT /api/cart/item/:productId
 export const updateCartItem = async (req: Request, res: Response) => {
 
+
+
     try {
         const { quantity, size } = req.body;
         const { productId } = req.params;
@@ -83,14 +85,23 @@ export const updateCartItem = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Cart not found' });
         }
 
-        const item = cart.items.find((item) => item.product.toString() === productId && item.size === size);
+        const normalizedSize = size || null;
+
+        const item = cart.items.find(
+            (item) =>
+                item.product.toString() === productId &&
+                (item.size || null) === normalizedSize
+        );
 
         if (!item) {
             return res.status(404).json({ success: false, message: 'Item not found in cart' });
         }
 
         if (quantity <= 0) {
-            cart.items = cart.items.filter((item) => item.product.toString() !== productId)
+            cart.items = cart.items.filter(
+                (item) =>
+                    !(item.product.toString() === productId && item.size === size)
+            );
         } else {
             const product = await Product.findById(productId);
 
@@ -116,26 +127,42 @@ export const updateCartItem = async (req: Request, res: Response) => {
 // DELETE /api/cart/item/:productId
 export const removeCartItem = async (req: Request, res: Response) => {
     try {
-        const { size } = req.query;
         const cart = await Cart.findOne({ user: req.user._id });
 
-        if (!cart || !size) {
-            return res.status(404).json({ success: false, message: 'Cart not found' });
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found",
+            });
         }
 
-        cart.items = cart.items.filter((item) => item.product.toString() !== req.params.productId || item.size !== size);
+        const normalizedSize = (req.query.size as string) || null;
+
+        cart.items = cart.items.filter((item) => {
+            // Keep other products
+            if (item.product.toString() !== req.params.productId) {
+                return true;
+            }
+
+            // Remove only the matching product and size
+            return (item.size || null) !== normalizedSize;
+        });
 
         cart.calculateTotal();
         await cart.save();
-        await cart.populate('items.product', 'name images price stock');
+        await cart.populate("items.product", "name images price stock");
 
-        res.json({ success: true, data: cart });
-
+        res.json({
+            success: true,
+            data: cart,
+        });
     } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
-
-}
+};
 
 // Clear cart
 // DELETE /api/cart

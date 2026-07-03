@@ -39,9 +39,11 @@ export default function CartItem({
               {item.product.name}
             </Text>
 
-            <Text className='text-secondary text-xs'>
-              Size: {item.size}
-            </Text>
+            {item.size && (
+    <Text className='text-secondary text-xs'>
+        Size: {item.size}
+    </Text>
+)}
           </View>
 
           <TouchableOpacity onPress={onRemove}>

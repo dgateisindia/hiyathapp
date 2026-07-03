@@ -100,7 +100,7 @@ export default function EditProduct() {
     };
 
     const handleSubmit = async () => {
-        if (!name || !price || sizes.length < 1) {
+        if (!name || !price ) {
             Toast.show({
                 type: 'error',
                 text1: 'Missing Fields',
