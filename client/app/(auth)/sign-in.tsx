@@ -112,6 +112,14 @@ if (isSignedIn) {
                         <TextInput className="w-full bg-surface p-4 rounded-xl text-primary" placeholder="********" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword} />
                     </View>
 
+                    <View className="items-end mb-6">
+    <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+        <Text className="text-primary font-medium">
+            Forgot Password?
+        </Text>
+    </TouchableOpacity>
+</View>
+
                     {/* Submit */}
                     <Pressable className={`w-full py-4 rounded-full items-center mb-10 ${loading || !emailAddress || !password ? "bg-gray-300" : "bg-primary"}`} onPress={onSignInPress} disabled={loading || !emailAddress || !password}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Sign In</Text>}
