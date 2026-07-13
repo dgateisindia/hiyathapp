@@ -7,34 +7,154 @@ import csv from "csv-parser";
 import XLSX from "xlsx";
 
 
-// Get all products 
+// Get all products
 // GET /api/products
-export const getProducts = async (req: Request, res: Response) => {
+export const getProducts = async (
+    req: Request,
+    res: Response
+) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
-        const query: any = { isActive: true };
+        const page = Math.max(
+            Number(req.query.page) || 1,
+            1
+        );
+
+        const limit = Math.max(
+            Number(req.query.limit) || 10,
+            1
+        );
+
+        const sort = String(
+            req.query.sort || "default"
+        );
+
+        const query: any = {
+            isActive: true
+        };
+
+        let sortOptions: Record<string, 1 | -1>;
+
+        if (sort === "lowToHigh") {
+            sortOptions = {
+                price: 1,
+                _id: 1
+            };
+        } else if (sort === "highToLow") {
+            sortOptions = {
+                price: -1,
+                _id: 1
+            };
+        } else {
+            sortOptions = {
+                createdAt: -1,
+                _id: -1
+            };
+        }
 
         const total = await Product.countDocuments(query);
+
         const products = await Product.find(query)
-            .sort({ createdAt: -1 })
-            .skip((Number(page) - 1) * Number(limit))
-            .limit(Number(limit));
+            .sort(sortOptions)
+            .skip((page - 1) * limit)
+            .limit(limit);
 
         res.json({
             success: true,
             data: products,
             pagination: {
                 total,
-                page: Number(page),
-                pages: Math.ceil(total / Number(limit))
+                page,
+                pages: Math.ceil(total / limit)
             }
         });
 
     } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
+};
 
-}
+// Search products by name 
+
+export const searchProducts = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+
+        const q = String(req.query.q || '');
+        const sort = String(
+            req.query.sort || 'default'
+        );
+
+        const filter: any = {
+            isActive: true
+        };
+
+        if (q.trim()) {
+            filter.$or = [
+                {
+                    title: {
+                        $regex: q,
+                        $options: 'i'
+                    }
+                },
+                {
+                    name: {
+                        $regex: q,
+                        $options: 'i'
+                    }
+                },
+                {
+                    description: {
+                        $regex: q,
+                        $options: 'i'
+                    }
+                },
+                {
+                    category: {
+                        $regex: q,
+                        $options: 'i'
+                    }
+                }
+            ];
+        }
+
+        const sortOptions: Record<string, 1 | -1> =
+            sort === 'lowToHigh'
+                ? {
+                    price: 1,
+                    _id: 1
+                }
+                : sort === 'highToLow'
+                    ? {
+                        price: -1,
+                        _id: 1
+                    }
+                    : {
+                        createdAt: -1,
+                        _id: -1
+                    };
+
+        const products = await Product.find(filter)
+            .sort(sortOptions);
+
+        res.json({
+            success: true,
+            data: products
+        });
+
+    } catch (error: any) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
 
 // Get single product 
 // GET /api/products/:id

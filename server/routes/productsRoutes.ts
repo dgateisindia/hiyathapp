@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProducts, getProduct, updateProduct, deleteProduct, importProductsCSV, importProducts } from '../controllers/productController';
+import { getProducts, getProduct, updateProduct, deleteProduct, importProductsCSV, importProducts, searchProducts } from '../controllers/productController';
 import { createProduct } from '../controllers/productController';
 import { protect, authorize } from '../middleware/auth';
 import upload from '../middleware/upload';
@@ -15,6 +15,9 @@ const csvUpload = multer({
 
 // Get all products
 ProductRouter.get('/', getProducts);
+
+// Search products
+ProductRouter.get("/search", searchProducts);
 
 // Get single product
 ProductRouter.get('/:id', getProduct);
