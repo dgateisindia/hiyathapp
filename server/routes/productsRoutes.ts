@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProducts, getProduct, updateProduct, deleteProduct, importProductsCSV, importProducts, searchProducts } from '../controllers/productController';
+import { getProducts, getProduct, updateProduct, deleteProduct, importProductsCSV, importProducts, searchProducts, rateProduct, getMyProductRating } from '../controllers/productController';
 import { createProduct } from '../controllers/productController';
 import { protect, authorize } from '../middleware/auth';
 import upload from '../middleware/upload';
@@ -18,6 +18,17 @@ ProductRouter.get('/', getProducts);
 
 // Search products
 ProductRouter.get("/search", searchProducts);
+
+// Rate product
+ProductRouter.post(
+    '/:id/rating',
+    rateProduct
+)
+
+ProductRouter.get(
+    '/:id/my-rating',
+    getMyProductRating
+)
 
 // Get single product
 ProductRouter.get('/:id', getProduct);

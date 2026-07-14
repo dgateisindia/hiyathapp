@@ -1,6 +1,12 @@
+import mongoose from 'mongoose'
+import { getAuth } from '@clerk/express'
+import ProductRating from '../models/ProductRating'
+
 import { Request, Response } from 'express';
 import cloudinary from '../config/cloudinary';
 import Product from '../models/Products';
+import Order from '../models/order';
+import User from '../models/user'
 
 import fs from "fs";
 import csv from "csv-parser";
@@ -174,6 +180,333 @@ export const getProduct = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 
+}
+
+// Rate a product
+interface RateProductBody {
+    rating: number
+    review: string
+    orderId: string
+}
+
+interface RatingStatistics {
+    _id: mongoose.Types.ObjectId
+    average: number
+    count: number
+}
+
+export const rateProduct = async (
+    req: Request<
+        { id: string },
+        unknown,
+        RateProductBody
+    >,
+    res: Response
+) => {
+    try {
+        // This is the Clerk user ID
+        const { userId: clerkUserId } = getAuth(req)
+
+        if (!clerkUserId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please login to rate this product'
+            })
+        }
+
+        const { id } = req.params
+        const { orderId } = req.body
+
+        const rating = Number(req.body.rating)
+
+        const review = String(
+            req.body.review ?? ''
+        ).trim()
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid product ID'
+            })
+        }
+
+        if (
+            !orderId ||
+            !mongoose.Types.ObjectId.isValid(orderId)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order ID'
+            })
+        }
+
+        if (
+            !Number.isInteger(rating) ||
+            rating < 1 ||
+            rating > 5
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Rating must be a whole number between 1 and 5'
+            })
+        }
+
+        if (review.length < 3) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Review must contain at least 3 characters'
+            })
+        }
+
+        if (review.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Review cannot exceed 1000 characters'
+            })
+        }
+
+        const product = await Product.findOne({
+            _id: id,
+            isActive: true
+        })
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            })
+        }
+
+        /*
+         * Clerk gives an ID such as user_xxxxx.
+         * Your Order stores the MongoDB User ObjectId.
+         */
+        const mongoUser = await User.findOne({
+            clerkId: clerkUserId
+        }).select('_id')
+
+        if (!mongoUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User account not found'
+            })
+        }
+
+        /*
+         * Verify:
+         * 1. Correct order
+         * 2. Order belongs to logged-in MongoDB user
+         * 3. Order is delivered
+         * 4. Product exists inside order
+         */
+        const purchasedOrder = await Order.findOne({
+            _id: new mongoose.Types.ObjectId(orderId),
+            user: mongoUser._id,
+            orderStatus: 'delivered',
+            items: {
+                $elemMatch: {
+                    product: new mongoose.Types.ObjectId(id)
+                }
+            }
+        })
+
+        console.log('Clerk user ID:', clerkUserId)
+        console.log(
+            'MongoDB user ID:',
+            mongoUser._id.toString()
+        )
+        console.log('Order ID received:', orderId)
+        console.log('Product ID received:', id)
+        console.log(
+            'Purchased delivered order:',
+            purchasedOrder
+        )
+
+        if (!purchasedOrder) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'You can review only delivered products that you purchased'
+            })
+        }
+
+        /*
+         * ProductRating can continue storing the Clerk user ID,
+         * provided its userId field is a String.
+         */
+        const savedRating =
+            await ProductRating.findOneAndUpdate(
+                {
+                    product:
+                        new mongoose.Types.ObjectId(id),
+                    userId: clerkUserId
+                },
+                {
+                    $set: {
+                        rating,
+                        review
+                    }
+                },
+                {
+                    upsert: true,
+                    new: true,
+                    runValidators: true,
+                    setDefaultsOnInsert: true
+                }
+            )
+
+        const statistics =
+            await ProductRating.aggregate<RatingStatistics>([
+                {
+                    $match: {
+                        product:
+                            new mongoose.Types.ObjectId(id)
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$product',
+                        average: {
+                            $avg: '$rating'
+                        },
+                        count: {
+                            $sum: 1
+                        }
+                    }
+                }
+            ])
+
+        const average = statistics[0]
+            ? Number(statistics[0].average.toFixed(1))
+            : 0
+
+        const count = statistics[0]?.count ?? 0
+
+        const updatedProduct =
+            await Product.findByIdAndUpdate(
+                id,
+                {
+                    $set: {
+                        'ratings.average': average,
+                        'ratings.count': count
+                    }
+                },
+                {
+                    new: true,
+                    runValidators: true
+                }
+            )
+
+        return res.status(200).json({
+            success: true,
+            message:
+                'Rating and review submitted successfully',
+            data: {
+                userRating: savedRating.rating,
+                review: savedRating.review,
+                ratings: {
+                    average:
+                        updatedProduct?.ratings
+                            ?.average ?? average,
+                    count:
+                        updatedProduct?.ratings
+                            ?.count ?? count
+                }
+            }
+        })
+    } catch (error: unknown) {
+        console.error(
+            'Rate product error:',
+            error
+        )
+
+        const message =
+            error instanceof Error
+                ? error.message
+                : 'Unable to submit rating and review'
+
+        return res.status(500).json({
+            success: false,
+            message
+        })
+    }
+}
+
+// Get product ratings
+// Get logged-in user's rating for a product
+// GET /api/products/:id/my-rating
+
+export const getMyProductRating = async (
+    req: Request<{ id: string }>,
+    res: Response
+) => {
+    try {
+        const { userId } = getAuth(req)
+        const { id } = req.params
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please login first'
+            })
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid product ID'
+            })
+        }
+
+        const productExists = await Product.exists({
+            _id: id,
+            isActive: true
+        })
+
+        if (!productExists) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            })
+        }
+
+        const existingRating =
+            await ProductRating.findOne({
+                product: id,
+                userId
+            }).select('rating review')
+
+        return res.status(200).json({
+            success: true,
+
+            data: {
+                rating:
+                    existingRating?.rating ?? 0,
+
+                review:
+                    existingRating?.review ?? ''
+            }
+        })
+
+    } catch (error: unknown) {
+        console.error(
+            'Get product rating error:',
+            error
+        )
+
+        const message =
+            error instanceof Error
+                ? error.message
+                : 'Unable to get product rating and review'
+
+        return res.status(500).json({
+            success: false,
+            message
+        })
+    }
 }
 
 // Create a new product
