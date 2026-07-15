@@ -22,6 +22,7 @@ ProductRouter.get("/search", searchProducts);
 // Rate product
 ProductRouter.post(
     '/:id/rating',
+    upload.array('images', 5),
     rateProduct
 )
 

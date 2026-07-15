@@ -9,6 +9,7 @@ import type {
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 
 import React, {
     useEffect,
@@ -29,6 +30,11 @@ import {
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
+
+interface ExistingReviewImage {
+    url: string;
+    publicId: string;
+}
 
 export default function OrderDetails() {
     const { getToken } = useAuth();
@@ -82,6 +88,16 @@ export default function OrderDetails() {
         setSubmittingRating
     ] = useState(false);
 
+    const [
+    selectedReviewImages,
+    setSelectedReviewImages
+    ] = useState<ImagePicker.ImagePickerAsset[]>([]);
+
+    const [
+    existingReviewImages,
+    setExistingReviewImages
+    ] = useState<ExistingReviewImage[]>([]);
+
     const fetchOrderDetails = async () => {
         if (!orderId) {
             setLoading(false);
@@ -131,6 +147,8 @@ export default function OrderDetails() {
         setSelectedProductName("");
         setSelectedRating(0);
         setSelectedReview("");
+        setSelectedReviewImages([]);
+        setExistingReviewImages([]);
         setLoadingRating(false);
     };
 
@@ -171,6 +189,12 @@ export default function OrderDetails() {
                 data.data?.rating ?? 0
             );
 
+            setExistingReviewImages(
+    Array.isArray(data.data?.images)
+        ? data.data.images
+        : []
+);
+
             setSelectedReview(
                 data.data?.review ?? ""
             );
@@ -186,6 +210,125 @@ export default function OrderDetails() {
             setLoadingRating(false);
         }
     };
+
+    const pickReviewImages = async () => {
+    try {
+        if (submittingRating) {
+            return;
+        }
+
+        const permission =
+            await ImagePicker
+                .requestMediaLibraryPermissionsAsync();
+
+        if (!permission.granted) {
+            Alert.alert(
+                "Permission Required",
+                "Please allow photo access to upload product images."
+            );
+
+            return;
+        }
+
+        const remainingImages =
+            5 - selectedReviewImages.length;
+
+        if (remainingImages <= 0) {
+            Alert.alert(
+                "Image Limit",
+                "You can upload a maximum of 5 images."
+            );
+
+            return;
+        }
+
+        const result =
+            await ImagePicker
+                .launchImageLibraryAsync({
+                    mediaTypes: ["images"],
+                    allowsMultipleSelection: true,
+                    selectionLimit:
+                        remainingImages,
+                    quality: 0.8
+                });
+
+        if (result.canceled) {
+            return;
+        }
+
+        const newImages =
+            result.assets.filter(
+                asset =>
+                    asset.type === "image" ||
+                    !asset.type
+            );
+
+        setSelectedReviewImages(
+            currentImages => {
+                const combinedImages = [
+                    ...currentImages,
+                    ...newImages
+                ];
+
+                const uniqueImages =
+                    combinedImages.filter(
+                        (
+                            image,
+                            index,
+                            array
+                        ) =>
+                            array.findIndex(
+                                item =>
+                                    item.uri ===
+                                    image.uri
+                            ) === index
+                    );
+
+                return uniqueImages.slice(
+                    0,
+                    5
+                );
+            }
+        );
+
+        /*
+         * New selected images will replace
+         * existing Cloudinary review images.
+         */
+        setExistingReviewImages([]);
+
+    } catch (error) {
+        console.error(
+            "Image picker error:",
+            error
+        );
+
+        Alert.alert(
+            "Unable to Select Images",
+            "Please try selecting the images again."
+        );
+    }
+};
+
+/*
+ * This must be outside pickReviewImages
+ * so that the JSX can access it.
+ */
+const removeSelectedReviewImage = (
+    imageIndex: number
+) => {
+    if (submittingRating) {
+        return;
+    }
+
+    setSelectedReviewImages(
+        currentImages =>
+            currentImages.filter(
+                (_, index) =>
+                    index !== imageIndex
+            )
+    );
+};
 
     const submitRating = async () => {
         if (!selectedProductId) {
@@ -250,20 +393,67 @@ export default function OrderDetails() {
                 return;
             }
 
-            await api.post(
-                `/products/${selectedProductId}/rating`,
-                {
-                    rating: selectedRating,
-                    review: cleanReview,
-                    orderId: order._id
-                },
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
-                }
-            );
+            const formData = new FormData();
+
+formData.append(
+    "rating",
+    String(selectedRating)
+);
+
+formData.append(
+    "review",
+    cleanReview
+);
+
+formData.append(
+    "orderId",
+    order._id
+);
+
+selectedReviewImages.forEach(
+    (image, index) => {
+        const extensionFromName =
+            image.fileName
+                ?.split(".")
+                .pop();
+
+        const extensionFromMime =
+            image.mimeType
+                ?.split("/")
+                .pop();
+
+        const extension =
+            extensionFromName ||
+            extensionFromMime ||
+            "jpg";
+
+        formData.append(
+            "images",
+            {
+                uri: image.uri,
+
+                name:
+                    image.fileName ||
+                    `review-${Date.now()}-${index}.${extension}`,
+
+                type:
+                    image.mimeType ||
+                    "image/jpeg"
+            } as any
+        );
+    }
+);
+
+await api.post(
+    `/products/${selectedProductId}/rating`,
+    formData,
+    {
+        headers: {
+            Authorization:
+                `Bearer ${token}`
+        }
+    }
+);
 
             Alert.alert(
                 "Thank You",
@@ -275,6 +465,8 @@ export default function OrderDetails() {
             setSelectedProductName("");
             setSelectedRating(0);
             setSelectedReview("");
+            setSelectedReviewImages([]);
+            setExistingReviewImages([]);
 
         } catch (error: any) {
             console.log(
@@ -933,6 +1125,152 @@ export default function OrderDetails() {
                                     </Text>
 
                                 </View>
+
+                                <View className="mt-5">
+
+    <View className="flex-row items-center justify-between">
+
+        <View className="flex-1 mr-3">
+
+            <Text className="text-primary font-semibold">
+                Add product photos
+            </Text>
+
+            <Text className="text-secondary text-xs mt-1">
+                Optional, maximum 5 images
+            </Text>
+
+        </View>
+
+        <Text className="text-secondary text-xs">
+            {selectedReviewImages.length > 0
+                ? selectedReviewImages.length
+                : existingReviewImages.length}
+            /5
+        </Text>
+
+    </View>
+
+    {existingReviewImages.length > 0 &&
+        selectedReviewImages.length === 0 && (
+            <View className="mt-3">
+
+                <Text className="text-secondary text-xs mb-2">
+                    Previously uploaded images
+                </Text>
+
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                >
+                    {existingReviewImages.map(
+                        (image, index) => (
+                            <Image
+                                key={
+                                    image.publicId ||
+                                    `${image.url}-${index}`
+                                }
+                                source={{
+                                    uri: image.url
+                                }}
+                                className="w-20 h-20 rounded-xl bg-gray-100 mr-3"
+                                resizeMode="cover"
+                            />
+                        )
+                    )}
+                </ScrollView>
+
+                <Text className="text-orange-500 text-xs mt-2">
+                    Selecting new images will replace these images.
+                </Text>
+
+            </View>
+        )}
+
+    {selectedReviewImages.length > 0 && (
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mt-3"
+        >
+            {selectedReviewImages.map(
+                (image, index) => (
+                    <View
+                        key={`${image.uri}-${index}`}
+                        className="mr-3"
+                    >
+                        <Image
+                            source={{
+                                uri: image.uri
+                            }}
+                            className="w-20 h-20 rounded-xl bg-gray-100"
+                            resizeMode="cover"
+                        />
+
+                        <TouchableOpacity
+                            onPress={() =>
+                                removeSelectedReviewImage(
+                                    index
+                                )
+                            }
+                            disabled={
+                                submittingRating
+                            }
+                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black items-center justify-center"
+                        >
+                            <Ionicons
+                                name="close"
+                                size={17}
+                                color="white"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                )
+            )}
+        </ScrollView>
+    )}
+
+    <TouchableOpacity
+        onPress={pickReviewImages}
+        disabled={
+            submittingRating ||
+            selectedReviewImages.length >= 5
+        }
+        activeOpacity={0.8}
+        className={`mt-4 border border-dashed rounded-xl py-4 items-center justify-center ${
+            submittingRating ||
+            selectedReviewImages.length >= 5
+                ? "border-gray-200 bg-gray-100"
+                : "border-gray-400 bg-gray-50"
+        }`}
+    >
+        <Ionicons
+            name="images-outline"
+            size={25}
+            color={
+                selectedReviewImages.length >= 5
+                    ? "#9ca3af"
+                    : COLORS.primary
+            }
+        />
+
+        <Text
+            className={`font-semibold mt-2 ${
+                selectedReviewImages.length >= 5
+                    ? "text-gray-400"
+                    : "text-primary"
+            }`}
+        >
+            {existingReviewImages.length > 0 &&
+            selectedReviewImages.length === 0
+                ? "Replace Review Images"
+                : selectedReviewImages.length > 0
+                  ? "Add More Images"
+                  : "Choose Images"}
+        </Text>
+    </TouchableOpacity>
+
+</View>
 
                                 <TouchableOpacity
                                     onPress={

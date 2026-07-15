@@ -74,6 +74,15 @@ export default function ProductDetail() {
     );
   }
 
+  // Add rating values here
+const averageRating = Number(
+  product.ratings?.average ?? 0
+);
+
+const reviewCount = Number(
+  product.ratings?.count ?? 0
+);
+
   const isLiked = isInWishlist(product._id);
 
   const requiresSize =
@@ -189,8 +198,8 @@ export default function ProductDetail() {
                 size={14}
                 color='#ffd700'
               />
-              <Text className='text-sm font-bold ml-1'>4.6</Text>
-              <Text className='text-xs text-secondary ml-1'>(85)</Text>
+              <Text className='text-sm font-bold ml-1'>{averageRating.toFixed(1)}</Text>
+              <Text className='text-xs text-secondary ml-1'> ({reviewCount})</Text>
             </View>
           </View>
           {/* Price */}

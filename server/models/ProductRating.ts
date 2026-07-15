@@ -1,30 +1,58 @@
 import mongoose, {
+    Document,
     Schema,
-    Types
+    model
 } from 'mongoose'
 
-export interface IProductRating {
-    product: Types.ObjectId
+
+
+interface IReviewImage {
+    url: string
+    publicId: string
+}
+
+interface IProductRating extends Document {
     userId: string
+    product: mongoose.Types.ObjectId
     rating: number
     review: string
-    createdAt?: Date
-    updatedAt?: Date
+    images: IReviewImage[]
+    createdAt: Date
+    updatedAt: Date
 }
+
+const reviewImageSchema =
+    new Schema<IReviewImage>(
+        {
+            url: {
+                type: String,
+                required: true
+            },
+
+            publicId: {
+                type: String,
+                required: true
+            }
+        },
+        {
+            _id: false
+        }
+    )
 
 const productRatingSchema =
     new Schema<IProductRating>(
         {
-            product: {
-                type: Schema.Types.ObjectId,
-                ref: 'Product',
-                required: true
-            },
-
             userId: {
                 type: String,
                 required: true,
-                trim: true
+                index: true
+            },
+
+            product: {
+                type: Schema.Types.ObjectId,
+                ref: 'Product',
+                required: true,
+                index: true
             },
 
             rating: {
@@ -36,9 +64,24 @@ const productRatingSchema =
 
             review: {
                 type: String,
+                required: true,
                 trim: true,
-                default: '',
+                minlength: 3,
                 maxlength: 1000
+            },
+
+            images: {
+                type: [reviewImageSchema],
+                default: [],
+
+                validate: {
+                    validator: (
+                        images: IReviewImage[]
+                    ) => images.length <= 5,
+
+                    message:
+                        'Maximum 5 review images are allowed'
+                }
             }
         },
         {
@@ -46,9 +89,10 @@ const productRatingSchema =
         }
     )
 
-// One user can submit only one rating/review
-// for each product.
-// Submitting again updates the existing record.
+/*
+ * One user can add only one rating/review
+ * for the same product.
+ */
 productRatingSchema.index(
     {
         product: 1,
@@ -59,7 +103,10 @@ productRatingSchema.index(
     }
 )
 
-export default mongoose.model<IProductRating>(
-    'ProductRating',
-    productRatingSchema
-)
+const ProductRating =
+    model<IProductRating>(
+        'ProductRating',
+        productRatingSchema
+    )
+
+export default ProductRating

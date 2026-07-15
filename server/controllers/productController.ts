@@ -7,6 +7,7 @@ import cloudinary from '../config/cloudinary';
 import Product from '../models/Products';
 import Order from '../models/order';
 import User from '../models/user'
+import { uploadReviewImage, deleteReviewImages, type ReviewImageResult } from '../utils/uploadReviewImage';
 
 import fs from "fs";
 import csv from "csv-parser";
@@ -184,7 +185,7 @@ export const getProduct = async (req: Request, res: Response) => {
 
 // Rate a product
 interface RateProductBody {
-    rating: number
+    rating: number | string
     review: string
     orderId: string
 }
@@ -204,35 +205,59 @@ export const rateProduct = async (
     res: Response
 ) => {
     try {
-        // This is the Clerk user ID
-        const { userId: clerkUserId } = getAuth(req)
+        const { userId: clerkUserId } =
+            getAuth(req)
 
         if (!clerkUserId) {
             return res.status(401).json({
                 success: false,
-                message: 'Please login to rate this product'
+                message:
+                    'Please login to rate this product'
             })
         }
 
         const { id } = req.params
-        const { orderId } = req.body
 
-        const rating = Number(req.body.rating)
+
+        const orderId = String(
+            req.body.orderId ?? ''
+        ).trim()
+
+        const rating = Number(
+            req.body.rating
+        )
 
         const review = String(
             req.body.review ?? ''
         ).trim()
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
+        const files =
+            (req.files as
+                | Express.Multer.File[]
+                | undefined) ?? []
+
+        /*
+         * Validate product ID.
+         */
+        if (
+            !mongoose.Types.ObjectId.isValid(
+                id
+            )
+        ) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid product ID'
             })
         }
 
+        /*
+         * Validate order ID.
+         */
         if (
             !orderId ||
-            !mongoose.Types.ObjectId.isValid(orderId)
+            !mongoose.Types.ObjectId.isValid(
+                orderId
+            )
         ) {
             return res.status(400).json({
                 success: false,
@@ -240,6 +265,9 @@ export const rateProduct = async (
             })
         }
 
+        /*
+         * Validate rating.
+         */
         if (
             !Number.isInteger(rating) ||
             rating < 1 ||
@@ -252,6 +280,9 @@ export const rateProduct = async (
             })
         }
 
+        /*
+         * Validate review.
+         */
         if (review.length < 3) {
             return res.status(400).json({
                 success: false,
@@ -268,10 +299,30 @@ export const rateProduct = async (
             })
         }
 
-        const product = await Product.findOne({
-            _id: id,
-            isActive: true
-        })
+        if (files.length > 5) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Maximum 5 review images are allowed'
+            })
+        }
+
+        const productObjectId =
+            new mongoose.Types.ObjectId(id)
+
+        const orderObjectId =
+            new mongoose.Types.ObjectId(
+                orderId
+            )
+
+        /*
+         * Verify product.
+         */
+        const product =
+            await Product.findOne({
+                _id: productObjectId,
+                isActive: true
+            })
 
         if (!product) {
             return res.status(404).json({
@@ -281,49 +332,40 @@ export const rateProduct = async (
         }
 
         /*
-         * Clerk gives an ID such as user_xxxxx.
-         * Your Order stores the MongoDB User ObjectId.
+         * Find MongoDB user using Clerk ID.
          */
-        const mongoUser = await User.findOne({
-            clerkId: clerkUserId
-        }).select('_id')
+        const mongoUser =
+            await User.findOne({
+                clerkId: clerkUserId
+            }).select('_id')
 
         if (!mongoUser) {
             return res.status(404).json({
                 success: false,
-                message: 'User account not found'
+                message:
+                    'User account not found'
             })
         }
 
         /*
          * Verify:
-         * 1. Correct order
-         * 2. Order belongs to logged-in MongoDB user
-         * 3. Order is delivered
-         * 4. Product exists inside order
+         * 1. Order belongs to logged-in user.
+         * 2. Order is delivered.
+         * 3. Product exists in that order.
          */
-        const purchasedOrder = await Order.findOne({
-            _id: new mongoose.Types.ObjectId(orderId),
-            user: mongoUser._id,
-            orderStatus: 'delivered',
-            items: {
-                $elemMatch: {
-                    product: new mongoose.Types.ObjectId(id)
-                }
-            }
-        })
+        const purchasedOrder =
+            await Order.findOne({
+                _id: orderObjectId,
+                user: mongoUser._id,
+                orderStatus: 'delivered',
 
-        console.log('Clerk user ID:', clerkUserId)
-        console.log(
-            'MongoDB user ID:',
-            mongoUser._id.toString()
-        )
-        console.log('Order ID received:', orderId)
-        console.log('Product ID received:', id)
-        console.log(
-            'Purchased delivered order:',
-            purchasedOrder
-        )
+                items: {
+                    $elemMatch: {
+                        product:
+                            productObjectId
+                    }
+                }
+            }).select('_id')
 
         if (!purchasedOrder) {
             return res.status(403).json({
@@ -334,22 +376,81 @@ export const rateProduct = async (
         }
 
         /*
-         * ProductRating can continue storing the Clerk user ID,
-         * provided its userId field is a String.
+         * Find existing rating before uploading
+         * or replacing review images.
+         */
+        const existingRating =
+            await ProductRating.findOne({
+                product: productObjectId,
+                userId: clerkUserId
+            }).select('images')
+
+        const previousImages:
+            ReviewImageResult[] =
+            (
+                existingRating?.images ?? []
+            ).map(image => ({
+                url: image.url,
+                publicId: image.publicId
+            }))
+
+        /*
+         * Upload new review images.
+         */
+        const uploadedImages:
+            ReviewImageResult[] = []
+
+        for (const file of files) {
+            const uploadedImage =
+                await uploadReviewImage(
+                    file.buffer
+                )
+
+            uploadedImages.push(
+                uploadedImage
+            )
+        }
+
+        /*
+         * Prepare review update.
+         */
+        const updateData: {
+            rating: number
+            review: string
+            images?: ReviewImageResult[]
+        } = {
+            rating,
+            review
+        }
+
+        /*
+         * New images replace old images.
+         *
+         * When no images are selected,
+         * existing review images remain unchanged.
+         */
+        if (uploadedImages.length > 0) {
+            updateData.images =
+                uploadedImages
+        }
+
+        /*
+         * Create or update the user's review.
          */
         const savedRating =
             await ProductRating.findOneAndUpdate(
                 {
                     product:
-                        new mongoose.Types.ObjectId(id),
-                    userId: clerkUserId
+                        productObjectId,
+
+                    userId:
+                        clerkUserId
                 },
+
                 {
-                    $set: {
-                        rating,
-                        review
-                    }
+                    $set: updateData
                 },
+
                 {
                     upsert: true,
                     new: true,
@@ -358,42 +459,99 @@ export const rateProduct = async (
                 }
             )
 
+        if (!savedRating) {
+            /*
+             * Remove newly uploaded images if
+             * MongoDB failed to save the review.
+             */
+            if (
+                uploadedImages.length > 0
+            ) {
+                await deleteReviewImages(
+                    uploadedImages
+                )
+            }
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Unable to save the product review'
+            })
+        }
+
+        /*
+         * Delete previous Cloudinary images only
+         * after the new review is saved successfully.
+         */
+        if (
+            uploadedImages.length > 0 &&
+            previousImages.length > 0
+        ) {
+            await deleteReviewImages(
+                previousImages
+            )
+        }
+
+        /*
+         * Recalculate the product's average rating
+         * and total review count.
+         */
         const statistics =
-            await ProductRating.aggregate<RatingStatistics>([
-                {
-                    $match: {
-                        product:
-                            new mongoose.Types.ObjectId(id)
-                    }
-                },
-                {
-                    $group: {
-                        _id: '$product',
-                        average: {
-                            $avg: '$rating'
-                        },
-                        count: {
-                            $sum: 1
+            await ProductRating.aggregate<RatingStatistics>(
+                [
+                    {
+                        $match: {
+                            product:
+                                productObjectId
+                        }
+                    },
+
+                    {
+                        $group: {
+                            _id: '$product',
+
+                            average: {
+                                $avg: '$rating'
+                            },
+
+                            count: {
+                                $sum: 1
+                            }
                         }
                     }
-                }
-            ])
+                ]
+            )
 
-        const average = statistics[0]
-            ? Number(statistics[0].average.toFixed(1))
-            : 0
+        const average =
+            statistics[0]
+                ? Number(
+                    statistics[0].average.toFixed(
+                        1
+                    )
+                )
+                : 0
 
-        const count = statistics[0]?.count ?? 0
+        const count =
+            statistics[0]?.count ?? 0
 
+        /*
+         * Store the latest rating summary
+         * inside the Product document.
+         */
         const updatedProduct =
             await Product.findByIdAndUpdate(
-                id,
+                productObjectId,
+
                 {
                     $set: {
-                        'ratings.average': average,
-                        'ratings.count': count
+                        'ratings.average':
+                            average,
+
+                        'ratings.count':
+                            count
                     }
                 },
+
                 {
                     new: true,
                     runValidators: true
@@ -404,16 +562,29 @@ export const rateProduct = async (
             success: true,
             message:
                 'Rating and review submitted successfully',
+
             data: {
-                userRating: savedRating.rating,
-                review: savedRating.review,
+                userRating:
+                    savedRating.rating,
+
+                review:
+                    savedRating.review,
+
+                images:
+                    savedRating.images ?? [],
+
                 ratings: {
                     average:
-                        updatedProduct?.ratings
-                            ?.average ?? average,
+                        updatedProduct
+                            ?.ratings
+                            ?.average ??
+                        average,
+
                     count:
-                        updatedProduct?.ratings
-                            ?.count ?? count
+                        updatedProduct
+                            ?.ratings
+                            ?.count ??
+                        count
                 }
             }
         })
@@ -477,7 +648,7 @@ export const getMyProductRating = async (
             await ProductRating.findOne({
                 product: id,
                 userId
-            }).select('rating review')
+            }).select('rating review images')
 
         return res.status(200).json({
             success: true,
@@ -487,7 +658,10 @@ export const getMyProductRating = async (
                     existingRating?.rating ?? 0,
 
                 review:
-                    existingRating?.review ?? ''
+                    existingRating?.review ?? '',
+
+                images:
+                    existingRating?.images ?? []
             }
         })
 
