@@ -166,22 +166,77 @@ export const searchProducts = async (
 // Get single product 
 // GET /api/products/:id
 
-export const getProduct = async (req: Request, res: Response) => {
+export const getProduct = async (
+    req: Request,
+    res: Response
+) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const rawId = req.params.id;
 
-        if (!product) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
+        const productId = Array.isArray(rawId)
+            ? rawId[0]
+            : rawId;
+
+        if (
+            !productId ||
+            !mongoose.Types.ObjectId.isValid(productId)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid product ID'
+            });
         }
 
+        const [product, reviews] = await Promise.all([
+            Product.findOne({
+                _id: productId,
+                isActive: true
+            }).lean(),
 
-        res.json({ success: true, data: product });
+            ProductRating.find({
+                product: productId
+            })
+                .select(
+                    'userId rating review images createdAt updatedAt'
+                )
+                .sort({ createdAt: -1 })
+                .lean()
+        ]);
 
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...product,
+
+                reviews: reviews.map((item) => ({
+                    _id: item._id,
+                    userId: item.userId,
+                    rating: item.rating,
+                    review: item.review || '',
+                    images: item.images || [],
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt
+                }))
+            }
+        });
     } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+        console.error('Get product error:', error);
 
-}
+        return res.status(500).json({
+            success: false,
+            message:
+                error.message ||
+                'Unable to fetch product'
+        });
+    }
+};
 
 // Rate a product
 interface RateProductBody {

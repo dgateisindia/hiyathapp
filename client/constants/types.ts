@@ -16,6 +16,11 @@ export interface User {
     createdAt: string
 }
 
+export interface ReviewImage {
+    url: string;
+    publicId?: string;
+}
+
 /**
  * A single review submitted by a user.
  */
@@ -37,6 +42,7 @@ export interface ProductReview {
 
     rating: number
     review: string
+    images?: ReviewImage[]
 
     orderId?: string
 
