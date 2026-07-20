@@ -1,35 +1,52 @@
+import AppText from '@/components/AppText'
 import { COLORS } from '@/constants'
 import { CategoryItemProps } from '@/constants/types'
-
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import {
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 export default function CategoryItem({
   item,
   isSelected,
-  onPress
+  onPress,
 }: CategoryItemProps) {
-
   return (
     <TouchableOpacity
-      className='mr-4 items-center'
+      className="mr-4 items-center"
       onPress={onPress}
+      activeOpacity={0.8}
     >
       <View
-        className={`w-14 h-14 rounded-full items-center justify-center mb-2 ${
-          isSelected ? 'bg-primary' : 'bg-surface'
+        className={`mb-2 h-14 w-14 items-center justify-center rounded-lg border ${
+          isSelected
+            ? 'border-primary bg-primary'
+            : 'border-border bg-surface'
         }`}
       >
         <Ionicons
           name={item.icon as any}
           size={24}
-          color={isSelected ? "#FFF" : COLORS.primary}
+          color={
+            isSelected
+              ? '#FFFFFF'
+              : COLORS.primary
+          }
         />
       </View>
 
-      <Text className={'text-xs font-medium ${isSelected ? "text-primary" : "text-secondary"}'}>
-        {item.name}</Text>
+      <AppText
+        weight="medium"
+        className={`text-xs ${
+          isSelected
+            ? 'text-primary'
+            : 'text-secondary'
+        }`}
+      >
+        {item.name}
+      </AppText>
     </TouchableOpacity>
   )
 }

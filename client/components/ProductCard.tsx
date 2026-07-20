@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native'
+import AppText from '@/components/AppText'
 
 export default function ProductCard({
     product,
@@ -89,17 +90,17 @@ export default function ProductCard({
                                     color="#9ca3af"
                                 />
 
-                                <Text className="text-gray-400 text-xs mt-2">
+                                <AppText className="text-gray-400 text-xs mt-2">
                                     No image
-                                </Text>
+                                </AppText>
                             </View>
                         )}
 
                         {product.isFeatured && (
                             <View className="absolute top-2 left-2 bg-amber-500 px-2 py-1 rounded">
-                                <Text className="text-black text-xs font-bold uppercase">
+                                <AppText className="text-black text-xs font-bold uppercase">
                                     Featured
-                                </Text>
+                                </AppText>
                             </View>
                         )}
                     </View>
@@ -119,27 +120,27 @@ export default function ProductCard({
                                 color="#ffd700"
                             />
 
-                            <Text className="text-primary text-xs font-medium ml-1">
+                            <AppText className="text-primary text-xs font-medium ml-1">
                                 {averageRating.toFixed(1)}
-                            </Text>
+                            </AppText>
 
-                            <Text className="text-secondary text-xs ml-1">
+                            <AppText className="text-secondary text-xs ml-1">
                                 ({reviewCount})
-                            </Text>
+                            </AppText>
                         </View>
 
                         {/* Product name */}
-                        <Text
+                        <AppText
                             className="text-primary font-medium text-sm mb-1"
                             numberOfLines={2}
                         >
                             {productName}
-                        </Text>
+                        </AppText>
 
                         {/* Price */}
-                        <Text className="text-primary font-bold text-base">
+                        <AppText className="text-primary font-bold text-base">
                             Rs.{Number(product.price ?? 0).toFixed(2)}
-                        </Text>
+                        </AppText>
                     </View>
                 </TouchableOpacity>
             </Link>

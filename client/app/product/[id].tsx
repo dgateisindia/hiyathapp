@@ -1,10 +1,14 @@
+import AppText from '@/components/AppText';
 import { COLORS } from '@/constants';
 import api from '@/constants/api';
 import { Product } from '@/constants/types';
 import useCart from '@/context/CartContext';
 import useWishlist from '@/context/Wishlist';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
@@ -13,7 +17,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -107,9 +110,12 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-white">
-        <Text className="text-base text-primary">
+        <AppText
+          weight="medium"
+          className="text-base text-primary"
+        >
           Product not found
-        </Text>
+        </AppText>
       </SafeAreaView>
     );
   }
@@ -122,8 +128,8 @@ export default function ProductDetail() {
 
   const reviewCount = Number(
     product.ratings?.count ??
-    reviews.length ??
-    0
+      reviews.length ??
+      0
   );
 
   const isLiked = isInWishlist(product._id);
@@ -293,9 +299,12 @@ export default function ProductDetail() {
         <View className="px-5">
           {/* Product title and rating */}
           <View className="mb-2 flex-row items-start justify-between">
-            <Text className="mr-4 flex-1 text-2xl font-bold text-primary">
+            <AppText
+              weight="extrabold"
+              className="mr-4 flex-1 text-2xl text-primary"
+            >
               {product.name}
-            </Text>
+            </AppText>
 
             <View className="mt-1 flex-row items-center">
               <Ionicons
@@ -304,28 +313,37 @@ export default function ProductDetail() {
                 color="#FFD700"
               />
 
-              <Text className="ml-1 text-sm font-bold text-primary">
+              <AppText
+                weight="semibold"
+                className="ml-1 text-sm text-primary"
+              >
                 {averageRating.toFixed(1)}
-              </Text>
+              </AppText>
 
-              <Text className="ml-1 text-xs text-secondary">
+              <AppText className="ml-1 text-xs text-secondary">
                 ({reviewCount})
-              </Text>
+              </AppText>
             </View>
           </View>
 
           {/* Price */}
-          <Text className="mb-6 text-2xl font-bold text-primary">
+          <AppText
+            weight="bold"
+            className="mb-6 text-2xl text-primary"
+          >
             Rs.{Number(product.price).toFixed(2)}
-          </Text>
+          </AppText>
 
           {/* Sizes */}
           {product.sizes &&
             product.sizes.length > 0 && (
               <>
-                <Text className="mb-3 text-base font-bold text-primary">
+                <AppText
+                  weight="semibold"
+                  className="mb-3 text-base text-primary"
+                >
                   Size
-                </Text>
+                </AppText>
 
                 <View className="mb-6 flex-row flex-wrap gap-3">
                   {product.sizes.map(
@@ -342,8 +360,9 @@ export default function ProductDetail() {
                             : 'border-gray-200 bg-white'
                         }`}
                       >
-                        <Text
-                          className={`text-sm font-medium ${
+                        <AppText
+                          weight="medium"
+                          className={`text-sm ${
                             selectedSize ===
                             size
                               ? 'text-white'
@@ -351,7 +370,7 @@ export default function ProductDetail() {
                           }`}
                         >
                           {size}
-                        </Text>
+                        </AppText>
                       </TouchableOpacity>
                     )
                   )}
@@ -360,35 +379,44 @@ export default function ProductDetail() {
             )}
 
           {/* Description */}
-          <Text className="mb-2 text-base font-bold text-primary">
+          <AppText
+            weight="semibold"
+            className="mb-2 text-base text-primary"
+          >
             Description
-          </Text>
+          </AppText>
 
-          <Text className="mb-6 leading-6 text-secondary">
+          <AppText className="mb-6 leading-6 text-secondary">
             {product.description}
-          </Text>
+          </AppText>
 
           {/* Ratings and reviews */}
           <View className="border-t border-gray-200 pt-6">
             <View className="flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-primary">
+              <AppText
+                weight="bold"
+                className="text-xl text-primary"
+              >
                 Ratings & Reviews
-              </Text>
+              </AppText>
 
-              <Text className="text-sm text-secondary">
+              <AppText className="text-sm text-secondary">
                 {reviewCount}{' '}
                 {reviewCount === 1
                   ? 'review'
                   : 'reviews'}
-              </Text>
+              </AppText>
             </View>
 
             {/* Rating summary */}
             <View className="mt-4 flex-row items-center rounded-2xl bg-gray-50 p-4">
               <View className="items-center border-r border-gray-200 pr-5">
-                <Text className="text-3xl font-bold text-primary">
+                <AppText
+                  weight="bold"
+                  className="text-3xl text-primary"
+                >
                   {averageRating.toFixed(1)}
-                </Text>
+                </AppText>
 
                 <View className="mt-2 flex-row">
                   {[1, 2, 3, 4, 5].map(
@@ -412,16 +440,19 @@ export default function ProductDetail() {
               </View>
 
               <View className="ml-5 flex-1">
-                <Text className="text-base font-semibold text-primary">
+                <AppText
+                  weight="semibold"
+                  className="text-base text-primary"
+                >
                   Customer ratings
-                </Text>
+                </AppText>
 
-                <Text className="mt-1 text-sm leading-5 text-secondary">
+                <AppText className="mt-1 text-sm leading-5 text-secondary">
                   Based on {reviewCount}{' '}
                   {reviewCount === 1
                     ? 'customer review'
                     : 'customer reviews'}
-                </Text>
+                </AppText>
               </View>
             </View>
 
@@ -434,15 +465,18 @@ export default function ProductDetail() {
                   color={COLORS.secondary}
                 />
 
-                <Text className="mt-3 text-base font-semibold text-primary">
+                <AppText
+                  weight="semibold"
+                  className="mt-3 text-base text-primary"
+                >
                   No reviews yet
-                </Text>
+                </AppText>
 
-                <Text className="mt-1 text-center text-sm leading-5 text-secondary">
+                <AppText className="mt-1 text-center text-sm leading-5 text-secondary">
                   Customers who purchased and
                   received this product can add a
                   review.
-                </Text>
+                </AppText>
               </View>
             ) : (
               reviews.map((review) => {
@@ -469,9 +503,12 @@ export default function ProductDetail() {
                         </View>
 
                         <View className="ml-3 flex-1">
-                          <Text className="text-sm font-semibold text-primary">
+                          <AppText
+                            weight="semibold"
+                            className="text-sm text-primary"
+                          >
                             Verified Customer
-                          </Text>
+                          </AppText>
 
                           <View className="mt-1 flex-row items-center">
                             <Ionicons
@@ -480,18 +517,18 @@ export default function ProductDetail() {
                               color="#16A34A"
                             />
 
-                            <Text className="ml-1 text-xs text-green-600">
+                            <AppText className="ml-1 text-xs text-green-600">
                               Verified purchase
-                            </Text>
+                            </AppText>
                           </View>
                         </View>
                       </View>
 
-                      <Text className="ml-3 text-xs text-gray-400">
+                      <AppText className="ml-3 text-xs text-gray-400">
                         {formatReviewDate(
                           review.createdAt
                         )}
-                      </Text>
+                      </AppText>
                     </View>
 
                     {/* Review rating */}
@@ -512,26 +549,32 @@ export default function ProductDetail() {
                         )
                       )}
 
-                      <Text className="ml-2 text-sm font-semibold text-primary">
+                      <AppText
+                        weight="semibold"
+                        className="ml-2 text-sm text-primary"
+                      >
                         {currentRating.toFixed(
                           1
                         )}
-                      </Text>
+                      </AppText>
                     </View>
 
                     {/* Written review */}
                     {review.review?.trim() ? (
-                      <Text className="mt-3 text-sm leading-6 text-primary">
+                      <AppText className="mt-3 text-sm leading-6 text-primary">
                         {review.review}
-                      </Text>
+                      </AppText>
                     ) : null}
 
                     {/* Review photos */}
                     {reviewImages.length > 0 ? (
                       <View className="mt-4">
-                        <Text className="mb-3 text-sm font-semibold text-primary">
+                        <AppText
+                          weight="semibold"
+                          className="mb-3 text-sm text-primary"
+                        >
                           Customer photos
-                        </Text>
+                        </AppText>
 
                         <ScrollView
                           horizontal
@@ -597,9 +640,12 @@ export default function ProductDetail() {
             color="#FFFFFF"
           />
 
-          <Text className="ml-2 text-base font-bold text-white">
+          <AppText
+            weight="semibold"
+            className="ml-2 text-base text-white"
+          >
             Add to Cart
-          </Text>
+          </AppText>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -616,9 +662,12 @@ export default function ProductDetail() {
           />
 
           <View className="absolute right-4 top-2 z-10 h-4 w-4 items-center justify-center rounded-full bg-black">
-            <Text className="text-[9px] text-white">
+            <AppText
+              weight="medium"
+              className="text-[9px] text-white"
+            >
               {itemCount}
-            </Text>
+            </AppText>
           </View>
         </TouchableOpacity>
       </View>

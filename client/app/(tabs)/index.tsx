@@ -1,4 +1,4 @@
-import { BANNERS, dummyProducts } from '@/assets/assets'
+import { BANNERS } from '@/assets/assets'
 import CategoryItem from '@/components/CategoryItem'
 import Header from '@/components/Header'
 import ProductCard from '@/components/ProductCard'
@@ -16,6 +16,16 @@ import {
     View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import AppText from '@/components/AppText'
+
+const MOST_SELLING_PRODUCT_IDS = [
+  '6a41f8ff4df0fab1d3f3354e',
+  '6a41f8ff4df0fab1d3f33550',
+  '6a41f8ff4df0fab1d3f33559',
+  '6a41f8ff4df0fab1d3f33567',
+  '6a41f8ff4df0fab1d3f3356a',
+  '6a41f8ff4df0fab1d3f33556',
+]
 
 const { width } = require('react-native').Dimensions.get('window')
 
@@ -32,25 +42,103 @@ export default function Home() {
   ]
 
   const fetchProducts = async () => {
-    try {
-      const {data} = await api.get('products')
-      setProducts(data.data)
+  try {
+    setLoading(true)
 
-    } catch (error) {
-      console.error('Error fetching products:',error);
+    // Fetch the first page
+    const firstResponse = await api.get('products', {
+      params: {
+        page: 1,
+        limit: 100,
+      },
+    })
 
-    } finally {
-      setLoading(false);
+    const firstPageProducts: Product[] =
+      firstResponse.data.data ?? []
+
+    const totalPages = Number(
+      firstResponse.data.pagination?.pages ?? 1
+    )
+
+    let allProducts: Product[] = [
+      ...firstPageProducts,
+    ]
+
+    // Fetch the remaining pages
+    if (totalPages > 1) {
+      const remainingRequests = Array.from(
+        { length: totalPages - 1 },
+        (_, index) =>
+          api.get('products', {
+            params: {
+              page: index + 2,
+              limit: 100,
+            },
+          })
+      )
+
+      const remainingResponses =
+        await Promise.all(remainingRequests)
+
+      const remainingProducts =
+        remainingResponses.flatMap(
+          (response) =>
+            response.data.data ?? []
+        )
+
+      allProducts = [
+        ...allProducts,
+        ...remainingProducts,
+      ]
     }
+
+    console.log(
+      'Total products available:',
+      firstResponse.data.pagination?.total
+    )
+
+    console.log(
+      'Total products loaded:',
+      allProducts.length
+    )
+
+    setProducts(allProducts)
+  } catch (error) {
+    console.error(
+      'Error fetching products:',
+      error
+    )
+
+    setProducts([])
+  } finally {
+    setLoading(false)
   }
+}
 
   useEffect(() => {
     fetchProducts()
   }, [])
 
+  const popularProducts = React.useMemo(() => {
+  return products.slice(0, 4)
+}, [products])
+
+const mostSellingProducts = React.useMemo(() => {
+  return MOST_SELLING_PRODUCT_IDS
+    .map((productId) =>
+      products.find(
+        (product) => product._id === productId
+      )
+    )
+    .filter(
+      (product): product is Product =>
+        product !== undefined
+    )
+}, [products])
+
   return (
     <SafeAreaView className="flex-1" edges={['top']}>
-      <Header title="Forever" showMenu showCart showLogo />
+      <Header title="Hiyath" showMenu showCart showLogo />
 
       <ScrollView
         className="flex-1 px-4"
@@ -126,9 +214,9 @@ export default function Home() {
         {/* Categories */}
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-primary">
+            <AppText weight="bold" className="text-xl text-primary">
               Categories
-            </Text>
+            </AppText>
           </View>
 
           <ScrollView
@@ -157,16 +245,16 @@ export default function Home() {
         {/* Popular Products */}
         <View className="mb-8">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-primary">
+            <AppText weight="bold" className="text-xl text-primary">
               Popular
-            </Text>
+            </AppText>
 
             <TouchableOpacity
               onPress={() => router.push('/shop' as any)}
             >
-              <Text className="text-secondary text-sm">
+              <AppText className="text-secondary text-sm">
                 See All
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
 
@@ -174,21 +262,54 @@ export default function Home() {
             <ActivityIndicator size="large" />
           ) : (
             <View className='flex-row flex-wrap justify-between'>
-              {products.slice(0, 4).map((product) => (
-                <ProductCard key={product._id} product={product}/>
-              ))}
+              {popularProducts.map((product) => (
+  <ProductCard
+    key={product._id}
+    product={product}
+  />
+))}
             </View>
           )}
         </View>
 
-        {/*newsletter cta*/}
-        <View className='bg-gray-100 p-6 rounded-2xl mb-20 items-center'>
-          <Text className='text-2xl font-bold text-primary mb-2 text-center'>Join the Revolution</Text>
-          <Text className='text-secondary text-center mb-4'>Subscribe to our newsletter and be the first to know about new products and special offers!</Text>
-          <TouchableOpacity className='bg-primary w-4/5 py-3 rounded-full items-center'>
-            <Text className='text-white font-medium text-base'>Subscribe Now!</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Most Selling */}
+<View className="mb-20">
+  <View className="flex-row justify-between items-center mb-4">
+    <AppText weight="bold" className="text-xl text-primary">
+      Most Selling
+    </AppText>
+
+    <TouchableOpacity
+      onPress={() => router.push('/shop' as any)}
+    >
+      <AppText className="text-secondary text-sm">
+        See All
+      </AppText>
+    </TouchableOpacity>
+  </View>
+
+  {loading ? (
+    <ActivityIndicator size="large" />
+  ) : mostSellingProducts.length > 0 ? (
+    <View className="flex-row flex-wrap justify-between">
+      {mostSellingProducts.map((product) => (
+        <ProductCard
+          key={product._id}
+          product={product}
+        />
+      ))}
+    </View>
+  ) : (
+    <View className="items-center py-8">
+      <AppText className="text-secondary">
+        No selected products available
+      </AppText>
+    </View>
+  )}
+</View>
+
+        
+        
       </ScrollView>
     </SafeAreaView>
   )
