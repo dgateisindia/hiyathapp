@@ -1,0 +1,127 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy-backend.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hiyath-production-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Express Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Configure SSH
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_PORT: ${{ secrets.EC2_PORT }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2-deploy-key.pem
+          chmod 600 ~/.ssh/ec2-deploy-key.pem
+
+          ssh-keyscan -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy backend
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_PORT: ${{ secrets.EC2_PORT }}
+        run: |
+          ssh \
+            -i ~/.ssh/ec2-deploy-key.pem \
+            -p "$EC2_PORT" \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=5 \
+            "$EC2_USER@$EC2_HOST" 'bash -se' <<'REMOTE_SCRIPT'
+
+            set -Eeuo pipefail
+
+            APP_DIR="/home/ubuntu/hiyathapp"
+            BACKEND_DIR="$APP_DIR/server"
+            BRANCH="main"
+            PM2_APP="hiyath-api"
+            HEALTH_URL="http://127.0.0.1:5000/health"
+
+            echo "========================================"
+            echo "Starting Hiyath backend deployment"
+            echo "========================================"
+
+            # Load Node.js when it was installed through NVM
+            export NVM_DIR="$HOME/.nvm"
+
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+            fi
+
+            echo "Node version:"
+            node --version
+
+            echo "NPM version:"
+            npm --version
+
+            echo "Opening application directory..."
+            cd "$APP_DIR"
+
+            echo "Downloading latest code..."
+            git fetch --prune origin "$BRANCH"
+
+            echo "Switching to deployment branch..."
+            git checkout "$BRANCH"
+
+            echo "Updating application files..."
+            git reset --hard "origin/$BRANCH"
+
+            echo "Opening backend directory..."
+            cd "$BACKEND_DIR"
+
+            echo "Installing dependencies..."
+            npm ci
+
+            echo "Building TypeScript backend..."
+            npm run build
+
+            echo "Restarting backend..."
+
+            if pm2 describe "$PM2_APP" > /dev/null 2>&1; then
+              pm2 restart "$PM2_APP" --update-env
+            else
+              echo "PM2 process not found. Starting it now..."
+              pm2 start npm --name "$PM2_APP" -- start
+            fi
+
+            pm2 save
+
+            echo "Waiting for backend startup..."
+            sleep 5
+
+            echo "Checking backend health..."
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              "$HEALTH_URL"
+
+            echo ""
+            echo "========================================"
+            echo "Deployment completed successfully"
+            echo "========================================"
+
+          REMOTE_SCRIPT
