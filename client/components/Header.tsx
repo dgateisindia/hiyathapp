@@ -38,7 +38,7 @@ export default function Header({title, showBack, showSearch,
 
     {showLogo ? (
         <View className='flex-1'>
-            <Image source={require('@/assets/hyath.avif')}
+            <Image source={require('@/assets/hiyath.png')}
             style = {{ width:"100%", height: 24}} resizeMode='contain'/>
         </View>
     ): title &&(
