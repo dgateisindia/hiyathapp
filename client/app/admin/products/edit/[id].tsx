@@ -234,7 +234,7 @@ export default function EditProduct() {
                                             }}
                                         >
                                             <View className="flex-row justify-between">
-                                                <Text className={`${category === item.name ? "font-bold text-primary" : ""}`}>{item.name}</Text>
+                                                <Text className={`{category === item.name ? "font-bold text-primary" : ""}`}>{item.name}</Text>
                                                 {category === item.name && <Ionicons name="checkmark" size={20} color={COLORS.primary} />}
                                             </View>
                                         </TouchableOpacity>

@@ -1,15 +1,12 @@
-import AppText from '@/components/AppText';
-import { COLORS } from '@/constants';
-import api from '@/constants/api';
-import { Product } from '@/constants/types';
-import useCart from '@/context/CartContext';
-import useWishlist from '@/context/Wishlist';
-import { Ionicons } from '@expo/vector-icons';
-import {
-  useLocalSearchParams,
-  useRouter,
-} from 'expo-router';
-import React, { useEffect } from 'react';
+import AppText from "@/components/AppText";
+import { COLORS } from "@/constants";
+import api from "@/constants/api";
+import { Product } from "@/constants/types";
+import useCart from "@/context/CartContext";
+import useWishlist from "@/context/Wishlist";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -19,11 +16,14 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function ProductDetail() {
   const params = useLocalSearchParams<{
@@ -35,30 +35,20 @@ export default function ProductDetail() {
     : params.id;
 
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const [product, setProduct] =
-    React.useState<Product | null>(null);
-
-  const [loading, setLoading] =
-    React.useState(true);
-
+  const [product, setProduct] = React.useState<Product | null>(null);
+  const [loading, setLoading] = React.useState(true);
   const [selectedSize, setSelectedSize] =
     React.useState<string | null>(null);
-
   const [activeImageIndex, setActiveImageIndex] =
     React.useState(0);
-
-  const [
-    selectedReviewImage,
-    setSelectedReviewImage,
-  ] = React.useState<string | null>(null);
+  const [selectedReviewImage, setSelectedReviewImage] =
+    React.useState<string | null>(null);
 
   const { addToCart, itemCount } = useCart();
 
-  const {
-    toggleWishlist,
-    isInWishlist,
-  } = useWishlist();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const fetchProduct = async () => {
     if (!productId) {
@@ -69,23 +59,21 @@ export default function ProductDetail() {
     try {
       setLoading(true);
 
-      const { data } = await api.get(
-        `/products/${productId}`
-      );
+      const { data } = await api.get(`/products/${productId}`);
 
       setProduct(data.data);
     } catch (error: any) {
       console.error(
-        'Failed to fetch product:',
+        "Failed to fetch product:",
         error.response?.data || error
       );
 
       Toast.show({
-        type: 'error',
-        text1: 'Failed to fetch product',
+        type: "error",
+        text1: "Failed to fetch product",
         text2:
           error.response?.data?.message ||
-          'Something went wrong',
+          "Something went wrong",
       });
     } finally {
       setLoading(false);
@@ -127,23 +115,19 @@ export default function ProductDetail() {
   );
 
   const reviewCount = Number(
-    product.ratings?.count ??
-      reviews.length ??
-      0
+    product.ratings?.count ?? reviews.length ?? 0
   );
 
   const isLiked = isInWishlist(product._id);
 
-  const requiresSize = Boolean(
-    product.sizes?.length
-  );
+  const requiresSize = Boolean(product.sizes?.length);
 
   const handleAddToCart = () => {
     if (requiresSize && !selectedSize) {
       Toast.show({
-        type: 'error',
-        text1: 'No size selected',
-        text2: 'Please select a size.',
+        type: "error",
+        text1: "No size selected",
+        text2: "Please select a size.",
       });
 
       return;
@@ -157,10 +141,10 @@ export default function ProductDetail() {
     );
 
     Toast.show({
-      type: 'success',
-      text1: 'Added to Cart',
+      type: "success",
+      text1: "Added to Cart",
       text2: `${product.name} added successfully`,
-      position: 'top',
+      position: "top",
     });
   };
 
@@ -172,28 +156,26 @@ export default function ProductDetail() {
           publicId?: string;
         }
   ) => {
-    return typeof image === 'string'
+    return typeof image === "string"
       ? image
       : image.url;
   };
 
-  const formatReviewDate = (
-    createdAt?: string
-  ) => {
+  const formatReviewDate = (createdAt?: string) => {
     if (!createdAt) {
-      return '';
+      return "";
     }
 
     const date = new Date(createdAt);
 
     if (Number.isNaN(date.getTime())) {
-      return '';
+      return "";
     }
 
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -202,7 +184,7 @@ export default function ProductDetail() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 120,
+          paddingBottom: 115 + insets.bottom,
         }}
       >
         {/* Product image carousel */}
@@ -215,34 +197,36 @@ export default function ProductDetail() {
             onScroll={(event) => {
               const slide = Math.round(
                 event.nativeEvent.contentOffset.x /
-                  event.nativeEvent
-                    .layoutMeasurement.width
+                  event.nativeEvent.layoutMeasurement.width
               );
 
               setActiveImageIndex(slide);
             }}
           >
-            {product.images?.map(
-              (image, index) => (
-                <Image
-                  key={`${index}`}
-                  source={
-                    typeof image === 'string'
-                      ? { uri: image }
-                      : image
-                  }
-                  style={{
-                    width,
-                    height: 450,
-                  }}
-                  resizeMode="cover"
-                />
-              )
-            )}
+            {product.images?.map((image, index) => (
+              <Image
+                key={`${index}`}
+                source={
+                  typeof image === "string"
+                    ? { uri: image }
+                    : image
+                }
+                style={{
+                  width,
+                  height: 450,
+                }}
+                resizeMode="cover"
+              />
+            ))}
           </ScrollView>
 
           {/* Header buttons */}
-          <View className="absolute left-4 right-4 top-12 z-10 flex-row items-center justify-between">
+          <View
+            style={{
+              top: Math.max(insets.top, 16),
+            }}
+            className="absolute left-4 right-4 z-10 flex-row items-center justify-between"
+          >
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => router.back()}
@@ -257,16 +241,12 @@ export default function ProductDetail() {
 
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() =>
-                toggleWishlist(product)
-              }
+              onPress={() => toggleWishlist(product)}
               className="h-10 w-10 items-center justify-center rounded-full bg-white/80"
             >
               <Ionicons
                 name={
-                  isLiked
-                    ? 'heart'
-                    : 'heart-outline'
+                  isLiked ? "heart" : "heart-outline"
                 }
                 size={24}
                 color={
@@ -280,18 +260,16 @@ export default function ProductDetail() {
 
           {/* Image pagination dots */}
           <View className="absolute bottom-4 left-0 right-0 flex-row justify-center gap-2">
-            {product.images?.map(
-              (_, index) => (
-                <View
-                  key={`${index}`}
-                  className={`h-2 rounded-full ${
-                    index === activeImageIndex
-                      ? 'w-6 bg-primary'
-                      : 'w-2 bg-gray-300'
-                  }`}
-                />
-              )
-            )}
+            {product.images?.map((_, index) => (
+              <View
+                key={`${index}`}
+                className={`h-2 rounded-full ${
+                  index === activeImageIndex
+                    ? "w-6 bg-primary"
+                    : "w-2 bg-gray-300"
+                }`}
+              />
+            ))}
           </View>
         </View>
 
@@ -346,34 +324,31 @@ export default function ProductDetail() {
                 </AppText>
 
                 <View className="mb-6 flex-row flex-wrap gap-3">
-                  {product.sizes.map(
-                    (size) => (
-                      <TouchableOpacity
-                        key={size}
-                        activeOpacity={0.8}
-                        onPress={() =>
-                          setSelectedSize(size)
-                        }
-                        className={`h-12 w-12 items-center justify-center rounded-full border ${
+                  {product.sizes.map((size) => (
+                    <TouchableOpacity
+                      key={size}
+                      activeOpacity={0.8}
+                      onPress={() =>
+                        setSelectedSize(size)
+                      }
+                      className={`h-12 w-12 items-center justify-center rounded-full border ${
+                        selectedSize === size
+                          ? "border-primary bg-primary"
+                          : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <AppText
+                        weight="medium"
+                        className={`text-sm ${
                           selectedSize === size
-                            ? 'border-primary bg-primary'
-                            : 'border-gray-200 bg-white'
+                            ? "text-white"
+                            : "text-primary"
                         }`}
                       >
-                        <AppText
-                          weight="medium"
-                          className={`text-sm ${
-                            selectedSize ===
-                            size
-                              ? 'text-white'
-                              : 'text-primary'
-                          }`}
-                        >
-                          {size}
-                        </AppText>
-                      </TouchableOpacity>
-                    )
-                  )}
+                        {size}
+                      </AppText>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </>
             )}
@@ -401,10 +376,10 @@ export default function ProductDetail() {
               </AppText>
 
               <AppText className="text-sm text-secondary">
-                {reviewCount}{' '}
+                {reviewCount}{" "}
                 {reviewCount === 1
-                  ? 'review'
-                  : 'reviews'}
+                  ? "review"
+                  : "reviews"}
               </AppText>
             </View>
 
@@ -419,23 +394,19 @@ export default function ProductDetail() {
                 </AppText>
 
                 <View className="mt-2 flex-row">
-                  {[1, 2, 3, 4, 5].map(
-                    (star) => (
-                      <Ionicons
-                        key={star}
-                        name={
-                          star <=
-                          Math.round(
-                            averageRating
-                          )
-                            ? 'star'
-                            : 'star-outline'
-                        }
-                        size={16}
-                        color="#FFD700"
-                      />
-                    )
-                  )}
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Ionicons
+                      key={star}
+                      name={
+                        star <=
+                        Math.round(averageRating)
+                          ? "star"
+                          : "star-outline"
+                      }
+                      size={16}
+                      color="#FFD700"
+                    />
+                  ))}
                 </View>
               </View>
 
@@ -448,10 +419,10 @@ export default function ProductDetail() {
                 </AppText>
 
                 <AppText className="mt-1 text-sm leading-5 text-secondary">
-                  Based on {reviewCount}{' '}
+                  Based on {reviewCount}{" "}
                   {reviewCount === 1
-                    ? 'customer review'
-                    : 'customer reviews'}
+                    ? "customer review"
+                    : "customer reviews"}
                 </AppText>
               </View>
             </View>
@@ -480,8 +451,9 @@ export default function ProductDetail() {
               </View>
             ) : (
               reviews.map((review) => {
-                const currentRating =
-                  Number(review.rating ?? 0);
+                const currentRating = Number(
+                  review.rating ?? 0
+                );
 
                 const reviewImages =
                   review.images ?? [];
@@ -538,10 +510,9 @@ export default function ProductDetail() {
                           <Ionicons
                             key={star}
                             name={
-                              star <=
-                              currentRating
-                                ? 'star'
-                                : 'star-outline'
+                              star <= currentRating
+                                ? "star"
+                                : "star-outline"
                             }
                             size={18}
                             color="#FFD700"
@@ -553,9 +524,7 @@ export default function ProductDetail() {
                         weight="semibold"
                         className="ml-2 text-sm text-primary"
                       >
-                        {currentRating.toFixed(
-                          1
-                        )}
+                        {currentRating.toFixed(1)}
                       </AppText>
                     </View>
 
@@ -595,9 +564,7 @@ export default function ProductDetail() {
                               return (
                                 <TouchableOpacity
                                   key={`${review._id}-${imageIndex}`}
-                                  activeOpacity={
-                                    0.85
-                                  }
+                                  activeOpacity={0.85}
                                   onPress={() =>
                                     setSelectedReviewImage(
                                       imageUrl
@@ -628,11 +595,29 @@ export default function ProductDetail() {
       </ScrollView>
 
       {/* Bottom cart footer */}
-      <View className="absolute bottom-0 left-0 right-0 flex-row border-t border-gray-100 bg-white p-4">
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#FFFFFF",
+          borderTopWidth: 1,
+          borderTopColor: "#F3F4F6",
+          paddingHorizontal: 16,
+          paddingTop: 12,
+          paddingBottom: Math.max(
+            insets.bottom,
+            12
+          ),
+        }}
+      >
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleAddToCart}
-          className="w-4/5 flex-row items-center justify-center rounded-full bg-primary py-4 shadow-lg"
+          className="flex-1 flex-row items-center justify-center rounded-full bg-primary py-4 shadow-lg"
         >
           <Ionicons
             name="bag-outline"
@@ -651,32 +636,34 @@ export default function ProductDetail() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() =>
-            router.push('/(tabs)/cart')
+            router.push("/(tabs)/cart")
           }
-          className="relative w-1/5 flex-row justify-center py-3"
+          className="relative ml-3 h-14 w-14 items-center justify-center"
         >
           <Ionicons
             name="cart-outline"
-            size={26}
+            size={30}
             color={COLORS.primary}
           />
 
-          <View className="absolute right-4 top-2 z-10 h-4 w-4 items-center justify-center rounded-full bg-black">
-            <AppText
-              weight="medium"
-              className="text-[9px] text-white"
-            >
-              {itemCount}
-            </AppText>
-          </View>
+          {itemCount > 0 && (
+            <View className="absolute right-1 top-1 h-[18px] min-w-[18px] items-center justify-center rounded-full bg-black px-1">
+              <AppText
+                weight="medium"
+                className="text-[9px] text-white"
+              >
+                {itemCount > 99
+                  ? "99+"
+                  : itemCount}
+              </AppText>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Full-screen review image */}
       <Modal
-        visible={Boolean(
-          selectedReviewImage
-        )}
+        visible={Boolean(selectedReviewImage)}
         transparent
         animationType="fade"
         statusBarTranslucent
@@ -697,7 +684,13 @@ export default function ProductDetail() {
             onPress={() =>
               setSelectedReviewImage(null)
             }
-            className="absolute right-5 top-14 z-20 h-11 w-11 items-center justify-center rounded-full bg-white/20"
+            style={{
+              top: Math.max(
+                insets.top + 8,
+                20
+              ),
+            }}
+            className="absolute right-5 z-20 h-11 w-11 items-center justify-center rounded-full bg-white/20"
           >
             <Ionicons
               name="close"

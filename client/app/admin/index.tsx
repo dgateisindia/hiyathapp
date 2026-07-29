@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                                     </View>
                                     <Text className="text-secondary text-sm">{order.user?.name || 'Unknown User'}</Text>
                                 </View>
-                                <Text className="text-primary font-bold text-lg">${order.totalAmount.toFixed(2)}</Text>
+                                <Text className="text-primary font-bold text-lg">Rs.{order.totalAmount.toFixed(2)}</Text>
                             </View>
                         </View>
                     ))
